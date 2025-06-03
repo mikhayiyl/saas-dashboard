@@ -10,7 +10,7 @@ import {
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function SalesTrendChart() {
+const SalesTrendChart = () => {
   const [data, setData] = useState([
     { month: "Jan", sales: 1000 },
     { month: "Feb", sales: 1400 },
@@ -84,4 +84,6 @@ export default function SalesTrendChart() {
       </ResponsiveContainer>
     </motion.section>
   );
-}
+};
+
+export default SalesTrendChart;

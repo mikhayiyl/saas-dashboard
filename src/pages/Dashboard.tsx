@@ -1,4 +1,4 @@
-import { RevenueByCategoryChart } from "@/components/dashboard/RevenueByCategoryChart";
+import RevenueByCategoryChart from "@/components/dashboard/RevenueByCategoryChart";
 import SalesTrendChart from "@/components/dashboard/SalesTrendChart";
 import { UserGrowthChart } from "@/components/dashboard/UserGrowthChart";
 
