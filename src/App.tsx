@@ -1,10 +1,17 @@
-import { Button } from "@/components/ui/button";
+import { Routes, Route } from "react-router-dom";
+import MainLayout from "@/layouts/MainLayout";
+import Dashboard from "./pages/Dashboard";
 
 function App() {
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center">
-      <Button>Click me</Button>
-    </div>
+    <Routes>
+      <Route path="/" element={<MainLayout />}>
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="users" element={<div>Users Page</div>} />
+        <Route path="reports" element={<div>Reports Page</div>} />
+        <Route path="settings" element={<div>Settings Page</div>} />
+      </Route>
+    </Routes>
   );
 }
 
