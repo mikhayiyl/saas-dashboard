@@ -8,35 +8,42 @@ import {
   CartesianGrid,
 } from "recharts";
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { ref, onValue } from "firebase/database";
+import { db } from "@/lib/firebase";
+import { motion } from "framer-motion";
 
-const initialData = [
-  { category: "Electronics", revenue: 24000 },
-  { category: "Clothing", revenue: 18000 },
-  { category: "Home", revenue: 12000 },
-  { category: "Books", revenue: 8000 },
-];
+type RevenueItem = {
+  category: string;
+  revenue: number;
+};
 
 export default function RevenueByCategoryChart() {
-  const [data, setData] = useState(initialData);
+  const [data, setData] = useState<RevenueItem[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setIsUpdating(true);
+    const revenueRef = ref(db, "revenueByCategory");
 
-      setTimeout(() => {
-        setData((prev) =>
-          prev.map((item) => ({
-            ...item,
-            revenue: item.revenue + Math.floor(Math.random() * 5000 - 2500), // fluctuate ±2.5k
-          }))
-        );
-        setIsUpdating(false);
-      }, 800);
-    }, 5000);
+    const unsubscribe = onValue(revenueRef, (snapshot) => {
+      const val = snapshot.val();
 
-    return () => clearInterval(interval);
+      if (val) {
+        const revenueData = val.revenueByCategory || {};
+        const parsed = Object.entries(revenueData).map(([key, entry]) => {
+          const typedEntry = entry as { category: string; revenue: number };
+          return {
+            category: typedEntry.category,
+            revenue: Number(typedEntry.revenue) || 0,
+          };
+        });
+
+        setIsUpdating(true);
+        setData(parsed);
+        setTimeout(() => setIsUpdating(false), 800);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   return (
@@ -50,19 +57,11 @@ export default function RevenueByCategoryChart() {
         <h2 className="text-lg font-semibold text-gray-800">
           Revenue by Category (Live)
         </h2>
-        <AnimatePresence>
-          {isUpdating && (
-            <motion.span
-              key="live"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="text-sm text-amber-500 animate-pulse"
-            >
-              Updating...
-            </motion.span>
-          )}
-        </AnimatePresence>
+        {isUpdating && (
+          <span className="text-sm text-amber-500 animate-pulse">
+            Updating…
+          </span>
+        )}
       </div>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data}>
