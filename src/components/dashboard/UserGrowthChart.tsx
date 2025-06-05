@@ -22,20 +22,39 @@ export default function UserGrowthChart() {
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    const growthRef = ref(db, "userGrowth");
+    const growthRef = ref(db, "revenueByCategory"); // Ensure correct reference to access userGrowth
 
     const unsubscribe = onValue(growthRef, (snapshot) => {
       const val = snapshot.val();
-      if (val) {
-        const parsed: UserGrowthItem[] = Object.values(val).map(
-          (entry: any) => ({
-            date: entry.date ?? "Unknown",
-            users: Number(entry.users) || 0,
-          })
+
+      // ✅ Check if userGrowth exists
+      if (val && val.userGrowth) {
+        const parsed: UserGrowthItem[] = Object.entries(val.userGrowth).map(
+          ([date, entry]) => {
+            if (
+              !entry ||
+              typeof entry !== "object" ||
+              !("activeUsers" in entry)
+            ) {
+              console.warn(`Invalid entry for date ${date}:`, entry);
+              return { date, users: 0 }; // Fallback to prevent errors
+            }
+
+            const typedEntry = entry as { activeUsers: number }; // ✅ Type assertion
+
+            return {
+              date,
+              users: Number(typedEntry.activeUsers) || 0, // ✅ Use `activeUsers`
+            };
+          }
         );
+
+        console.log("Final Parsed User Growth Data:", parsed);
         setIsUpdating(true);
         setData(parsed);
         setTimeout(() => setIsUpdating(false), 800);
+      } else {
+        console.warn("UserGrowth data not found!");
       }
     });
 
@@ -62,7 +81,7 @@ export default function UserGrowthChart() {
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="date" />
+          <XAxis dataKey="date" scale="point" />
           <YAxis />
           <Tooltip />
           <Line
