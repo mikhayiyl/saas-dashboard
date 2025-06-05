@@ -7,10 +7,9 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import { useEffect, useState } from "react";
-import { ref, onValue } from "firebase/database";
-import { db } from "@/lib/firebase";
+import { saveAs } from "file-saver";
 import { motion } from "framer-motion";
+import { useLiveData } from "@/hooks/useLiveData";
 
 type RevenueItem = {
   category: string;
@@ -18,33 +17,30 @@ type RevenueItem = {
 };
 
 export default function RevenueByCategoryChart() {
-  const [data, setData] = useState<RevenueItem[]>([]);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const { data, isUpdating } = useLiveData<RevenueItem>(
+    "revenueByCategory",
+    (val) => {
+      const revenueData = val.revenueByCategory || {};
+      return Object.entries(revenueData).map(([_, entry]) => {
+        const typedEntry = entry as { category: string; revenue: number };
+        return {
+          category: typedEntry.category,
+          revenue: Number(typedEntry.revenue) || 0,
+        };
+      });
+    }
+  );
 
-  useEffect(() => {
-    const revenueRef = ref(db, "revenueByCategory");
-
-    const unsubscribe = onValue(revenueRef, (snapshot) => {
-      const val = snapshot.val();
-
-      if (val) {
-        const revenueData = val.revenueByCategory || {};
-        const parsed = Object.entries(revenueData).map(([key, entry]) => {
-          const typedEntry = entry as { category: string; revenue: number };
-          return {
-            category: typedEntry.category,
-            revenue: Number(typedEntry.revenue) || 0,
-          };
-        });
-
-        setIsUpdating(true);
-        setData(parsed);
-        setTimeout(() => setIsUpdating(false), 800);
-      }
+  const handleExportCSV = () => {
+    const csvHeader = "Category,Revenue\n";
+    const csvRows = data
+      .map((item) => `${item.category},${item.revenue}`)
+      .join("\n");
+    const blob = new Blob([csvHeader + csvRows], {
+      type: "text/csv;charset=utf-8",
     });
-
-    return () => unsubscribe();
-  }, []);
+    saveAs(blob, "revenue_by_category.csv");
+  };
 
   return (
     <motion.section
@@ -57,19 +53,33 @@ export default function RevenueByCategoryChart() {
         <h2 className="text-lg font-semibold text-gray-800">
           Revenue by Category (Live)
         </h2>
-        {isUpdating && (
-          <span className="text-sm text-amber-500 animate-pulse">
-            Updating…
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {isUpdating && (
+            <span className="text-sm text-amber-500 animate-pulse">
+              Updating…
+            </span>
+          )}
+          <button
+            onClick={handleExportCSV}
+            className="px-2 py-1 text-xs bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition"
+          >
+            Export CSV
+          </button>
+        </div>
       </div>
+
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="category" />
           <YAxis />
           <Tooltip />
-          <Bar dataKey="revenue" fill="#3b82f6" />
+          <Bar
+            dataKey="revenue"
+            fill="#3b82f6"
+            animationDuration={500}
+            isAnimationActive
+          />
         </BarChart>
       </ResponsiveContainer>
     </motion.section>
