@@ -1,6 +1,6 @@
 import RevenueByCategoryChart from "@/components/dashboard/RevenueByCategoryChart";
 import SalesTrendChart from "@/components/dashboard/SalesTrendChart";
-import { UserGrowthChart } from "@/components/dashboard/UserGrowthChart";
+import UserGrowthChart from "@/components/dashboard/UserGrowthChart";
 
 export default function Dashboard() {
   return (

@@ -1,5 +1,3 @@
-"use client";
-
 import {
   LineChart,
   Line,
@@ -10,35 +8,38 @@ import {
   CartesianGrid,
 } from "recharts";
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { ref, onValue } from "firebase/database";
+import { db } from "@/lib/firebase";
+import { motion } from "framer-motion";
 
-export function UserGrowthChart() {
-  const [data, setData] = useState([
-    { month: "Jan", users: 200 },
-    { month: "Feb", users: 300 },
-    { month: "Mar", users: 450 },
-    { month: "Apr", users: 600 },
-    { month: "May", users: 850 },
-  ]);
+type UserGrowthItem = {
+  date: string;
+  users: number;
+};
 
+export default function UserGrowthChart() {
+  const [data, setData] = useState<UserGrowthItem[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setIsUpdating(true);
+    const growthRef = ref(db, "userGrowth");
 
-      setTimeout(() => {
-        setData((prev) => {
-          const nextUsers =
-            prev[prev.length - 1].users + Math.floor(Math.random() * 150);
-          const nextMonth = `M${prev.length + 1}`;
-          return [...prev.slice(1), { month: nextMonth, users: nextUsers }];
-        });
-        setIsUpdating(false);
-      }, 1000);
-    }, 5000);
+    const unsubscribe = onValue(growthRef, (snapshot) => {
+      const val = snapshot.val();
+      if (val) {
+        const parsed: UserGrowthItem[] = Object.values(val).map(
+          (entry: any) => ({
+            date: entry.date ?? "Unknown",
+            users: Number(entry.users) || 0,
+          })
+        );
+        setIsUpdating(true);
+        setData(parsed);
+        setTimeout(() => setIsUpdating(false), 800);
+      }
+    });
 
-    return () => clearInterval(interval);
+    return () => unsubscribe();
   }, []);
 
   return (
@@ -52,34 +53,23 @@ export function UserGrowthChart() {
         <h2 className="text-lg font-semibold text-gray-800">
           User Growth (Live)
         </h2>
-        <AnimatePresence>
-          {isUpdating && (
-            <motion.span
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="text-sm text-orange-500 animate-pulse"
-            >
-              Updating...
-            </motion.span>
-          )}
-        </AnimatePresence>
+        {isUpdating && (
+          <span className="text-sm text-amber-500 animate-pulse">
+            Updating…
+          </span>
+        )}
       </div>
-
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="month" />
+          <XAxis dataKey="date" />
           <YAxis />
           <Tooltip />
           <Line
             type="monotone"
             dataKey="users"
             stroke="#3b82f6"
-            strokeWidth={3}
-            dot={{ r: 5 }}
-            activeDot={{ r: 7 }}
+            strokeWidth={2}
           />
         </LineChart>
       </ResponsiveContainer>

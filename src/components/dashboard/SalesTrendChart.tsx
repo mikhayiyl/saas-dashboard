@@ -8,36 +8,46 @@ import {
   CartesianGrid,
 } from "recharts";
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { ref, onValue } from "firebase/database";
+import { db } from "@/lib/firebase";
+import { motion } from "framer-motion";
 
-const SalesTrendChart = () => {
-  const [data, setData] = useState([
-    { month: "Jan", sales: 1000 },
-    { month: "Feb", sales: 1400 },
-    { month: "Mar", sales: 1600 },
-    { month: "Apr", sales: 2000 },
-    { month: "May", sales: 2500 },
-  ]);
+type SalesTrendItem = {
+  date: string;
+  sales: number;
+};
 
+export default function SalesTrendsChart() {
+  const [data, setData] = useState<SalesTrendItem[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setIsUpdating(true);
+    const trendsRef = ref(db, "revenueByCategory");
 
-      setTimeout(() => {
-        setData((prev) => {
-          const nextSales =
-            prev[prev.length - 1].sales + Math.floor(Math.random() * 300);
-          const nextMonth = `M${prev.length + 1}`;
-          return [...prev.slice(1), { month: nextMonth, sales: nextSales }];
-        });
+    const unsubscribe = onValue(trendsRef, (snapshot) => {
+      const val = snapshot.val();
 
-        setIsUpdating(false);
-      }, 1000); // simulate loading delay
-    }, 5000);
+      if (val?.salesTrends) {
+        const parsed: SalesTrendItem[] = Object.entries(val.salesTrends).map(
+          ([date, entry]) => {
+            const typedEntry = entry as { totalSales: number };
+            return {
+              date,
+              sales: Number(typedEntry.totalSales) || 0,
+            };
+          }
+        );
 
-    return () => clearInterval(interval);
+        // Optional: Sort by date
+        parsed.sort((a, b) => a.date.localeCompare(b.date));
+
+        setIsUpdating(true);
+        setData(parsed);
+        setTimeout(() => setIsUpdating(false), 800);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   return (
@@ -51,39 +61,28 @@ const SalesTrendChart = () => {
         <h2 className="text-lg font-semibold text-gray-800">
           Sales Trends (Live)
         </h2>
-        <AnimatePresence>
-          {isUpdating && (
-            <motion.span
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="text-sm text-orange-500 animate-pulse"
-            >
-              Updating...
-            </motion.span>
-          )}
-        </AnimatePresence>
+        {isUpdating && (
+          <span className="text-sm text-amber-500 animate-pulse">
+            Updating…
+          </span>
+        )}
       </div>
-
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="month" />
+          <XAxis dataKey="date" />
           <YAxis />
           <Tooltip />
           <Line
             type="monotone"
             dataKey="sales"
-            stroke="#f97316"
-            strokeWidth={3}
-            dot={{ r: 5 }}
-            activeDot={{ r: 7 }}
+            stroke="#10b981"
+            strokeWidth={2}
+            dot={{ r: 3 }}
+            activeDot={{ r: 6 }}
           />
         </LineChart>
       </ResponsiveContainer>
     </motion.section>
   );
-};
-
-export default SalesTrendChart;
+}
