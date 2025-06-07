@@ -48,10 +48,10 @@ export default function SalesTrendsChart() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-white rounded-xl p-4 shadow-md"
+      className="bg-white dark:bg-zinc-900 rounded-xl p-4 shadow-md"
     >
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-gray-800">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
           Sales Trends (Live)
         </h2>
         <div className="flex items-center gap-3">
@@ -62,33 +62,41 @@ export default function SalesTrendsChart() {
           )}
           <button
             onClick={handleExportCSV}
-            className="px-2 py-1 text-xs bg-green-100 text-green-600 rounded hover:bg-green-200 transition"
+            className="px-2 py-1 text-xs bg-green-100 text-green-600 rounded hover:bg-green-200 transition dark:bg-green-900 dark:text-green-300 dark:hover:bg-green-800"
           >
             Export CSV
           </button>
         </div>
       </div>
 
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="date" />
-          <YAxis />
-          <Tooltip
-            formatter={(value: number) => `$${Number(value).toLocaleString()}`}
-            labelClassName="text-sm font-semibold"
-            itemStyle={{ color: "#10b981" }}
-          />
-          <Line
-            type="monotone"
-            dataKey="sales"
-            stroke="#10b981"
-            strokeWidth={2}
-            dot={{ r: 3 }}
-            activeDot={{ r: 6 }}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      {data.length === 0 ? (
+        <div className="h-[300px] w-full flex flex-col justify-between px-4 py-6 animate-pulse">
+          {[...Array(5)].map((_, i) => (
+            <div
+              key={i}
+              className="h-[2px] bg-gray-300 dark:bg-zinc-700 rounded w-full"
+              style={{ width: `${80 + Math.random() * 20}%` }}
+            />
+          ))}
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip />
+            <Line
+              type="monotone"
+              dataKey="sales"
+              stroke="#10b981"
+              strokeWidth={2}
+              dot={{ r: 3 }}
+              activeDot={{ r: 6 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      )}
     </motion.section>
   );
 }
