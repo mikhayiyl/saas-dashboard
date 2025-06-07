@@ -1,16 +1,14 @@
+import { useLiveData } from "@/hooks/useLiveData";
+import { motion } from "framer-motion";
 import {
-  LineChart,
+  CartesianGrid,
   Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
 } from "recharts";
-import { useEffect, useState } from "react";
-import { ref, onValue } from "firebase/database";
-import { db } from "@/lib/firebase";
-import { motion } from "framer-motion";
 
 type SalesTrendItem = {
   date: string;
@@ -18,37 +16,24 @@ type SalesTrendItem = {
 };
 
 export default function SalesTrendsChart() {
-  const [data, setData] = useState<SalesTrendItem[]>([]);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const { data, isUpdating } = useLiveData<SalesTrendItem>(
+    "revenueByCategory",
+    (val) => {
+      const salesData = val.salesTrends || {};
 
-  useEffect(() => {
-    const trendsRef = ref(db, "revenueByCategory");
+      const parsed: SalesTrendItem[] = Object.entries(salesData).map(
+        ([date, entry]) => {
+          const typedEntry = entry as { totalSales: number };
+          return {
+            date,
+            sales: Number(typedEntry.totalSales) || 0,
+          };
+        }
+      );
 
-    const unsubscribe = onValue(trendsRef, (snapshot) => {
-      const val = snapshot.val();
-
-      if (val?.salesTrends) {
-        const parsed: SalesTrendItem[] = Object.entries(val.salesTrends).map(
-          ([date, entry]) => {
-            const typedEntry = entry as { totalSales: number };
-            return {
-              date,
-              sales: Number(typedEntry.totalSales) || 0,
-            };
-          }
-        );
-
-        // Optional: Sort by date
-        parsed.sort((a, b) => a.date.localeCompare(b.date));
-
-        setIsUpdating(true);
-        setData(parsed);
-        setTimeout(() => setIsUpdating(false), 800);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
+      return parsed.sort((a, b) => a.date.localeCompare(b.date));
+    }
+  );
 
   return (
     <motion.section
