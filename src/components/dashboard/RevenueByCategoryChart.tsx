@@ -20,6 +20,7 @@ export default function RevenueByCategoryChart() {
   const { data, isUpdating } = useLiveData<RevenueItem>(
     "revenueByCategory",
     (val) => {
+      console.log(val);
       const revenueData = val.revenueByCategory || {};
       return Object.entries(revenueData).map(([_, entry]) => {
         const typedEntry = entry as { category: string; revenue: number };

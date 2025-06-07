@@ -1,7 +1,6 @@
 import { useLiveData } from "@/hooks/useLiveData";
 import { motion } from "framer-motion";
 import { saveAs } from "file-saver";
-
 import {
   CartesianGrid,
   Line,
@@ -22,7 +21,6 @@ export default function SalesTrendsChart() {
     "revenueByCategory",
     (val) => {
       const salesData = val.salesTrends || {};
-
       const parsed: SalesTrendItem[] = Object.entries(salesData).map(
         ([date, entry]) => {
           const typedEntry = entry as { totalSales: number };
@@ -32,7 +30,6 @@ export default function SalesTrendsChart() {
           };
         }
       );
-
       return parsed.sort((a, b) => a.date.localeCompare(b.date));
     }
   );
@@ -71,12 +68,17 @@ export default function SalesTrendsChart() {
           </button>
         </div>
       </div>
+
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" />
           <YAxis />
-          <Tooltip />
+          <Tooltip
+            formatter={(value: number) => `$${Number(value).toLocaleString()}`}
+            labelClassName="text-sm font-semibold"
+            itemStyle={{ color: "#10b981" }}
+          />
           <Line
             type="monotone"
             dataKey="sales"
