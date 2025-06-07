@@ -1,5 +1,7 @@
 import { useLiveData } from "@/hooks/useLiveData";
 import { motion } from "framer-motion";
+import { saveAs } from "file-saver";
+
 import {
   CartesianGrid,
   Line,
@@ -35,6 +37,15 @@ export default function SalesTrendsChart() {
     }
   );
 
+  const handleExportCSV = () => {
+    const csvHeader = "Date,Sales\n";
+    const csvRows = data.map((item) => `${item.date},${item.sales}`).join("\n");
+    const blob = new Blob([csvHeader + csvRows], {
+      type: "text/csv;charset=utf-8",
+    });
+    saveAs(blob, "sales_trends.csv");
+  };
+
   return (
     <motion.section
       initial={{ opacity: 0, y: 20 }}
@@ -46,11 +57,19 @@ export default function SalesTrendsChart() {
         <h2 className="text-lg font-semibold text-gray-800">
           Sales Trends (Live)
         </h2>
-        {isUpdating && (
-          <span className="text-sm text-amber-500 animate-pulse">
-            Updating…
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {isUpdating && (
+            <span className="text-sm text-amber-500 animate-pulse">
+              Updating…
+            </span>
+          )}
+          <button
+            onClick={handleExportCSV}
+            className="px-2 py-1 text-xs bg-green-100 text-green-600 rounded hover:bg-green-200 transition"
+          >
+            Export CSV
+          </button>
+        </div>
       </div>
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data}>
