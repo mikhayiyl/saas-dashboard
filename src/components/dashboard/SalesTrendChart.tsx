@@ -11,28 +11,34 @@ import {
   YAxis,
 } from "recharts";
 
+//  display type
 type SalesTrendItem = {
   date: string;
   sales: number;
 };
 
+// Raw Firebase structure type
+type RawAnalytics = {
+  salesTrend: {
+    [date: string]: {
+      totalSales: number;
+    };
+  };
+};
+
+// Transform logic - moved outside to prevent redefinition
+const transform = (val: RawAnalytics): SalesTrendItem[] => {
+  return Object.entries(val?.salesTrend || {}).map(([date, entry]) => ({
+    date,
+    sales: entry?.totalSales ?? 0,
+  }));
+};
+
 export default function SalesTrendsChart() {
-  const { data, isUpdating } = useLiveData<SalesTrendItem>(
-    "revenueByCategory",
-    (val) => {
-      const salesData = val.salesTrends || {};
-      const parsed: SalesTrendItem[] = Object.entries(salesData).map(
-        ([date, entry]) => {
-          const typedEntry = entry as { totalSales: number };
-          return {
-            date,
-            sales: Number(typedEntry.totalSales) || 0,
-          };
-        }
-      );
-      return parsed.sort((a, b) => a.date.localeCompare(b.date));
-    }
-  );
+  const { data, isUpdating, error, retry } = useLiveData<
+    SalesTrendItem,
+    RawAnalytics
+  >("analytics", transform);
 
   const handleExportCSV = () => {
     const csvHeader = "Date,Sales\n";
@@ -69,7 +75,19 @@ export default function SalesTrendsChart() {
         </div>
       </div>
 
-      {data.length === 0 ? (
+      {error && (
+        <div className="text-sm text-red-500 dark:text-red-400 mb-4">
+          Error: {error.message}
+          <button
+            onClick={retry}
+            className="ml-2 px-2 py-1 text-xs bg-red-200 text-red-600 rounded hover:bg-red-300 transition dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {data.length === 0 && !error ? (
         <div className="h-[300px] w-full flex flex-col justify-between px-4 py-6 animate-pulse">
           {[...Array(5)].map((_, i) => (
             <div

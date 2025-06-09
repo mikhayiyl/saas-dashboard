@@ -17,20 +17,16 @@ type RevenueItem = {
 };
 
 export default function RevenueByCategoryChart() {
-  const { data, isUpdating } = useLiveData<RevenueItem>(
-    "revenueByCategory",
-    (val) => {
-      console.log(val);
-      const revenueData = val.revenueByCategory || {};
-      return Object.entries(revenueData).map(([_, entry]) => {
-        const typedEntry = entry as { category: string; revenue: number };
-        return {
-          category: typedEntry.category,
-          revenue: Number(typedEntry.revenue) || 0,
-        };
-      });
-    }
-  );
+  const { data, isUpdating } = useLiveData<RevenueItem>("analytics", (val) => {
+    const revenueData = val.revenueByCategory || {};
+    return Object.entries(revenueData).map(([_, entry]) => {
+      const typedEntry = entry as { category: string; revenue: number };
+      return {
+        category: typedEntry.category,
+        revenue: Number(typedEntry.revenue) || 0,
+      };
+    });
+  });
 
   const handleExportCSV = () => {
     const csvHeader = "Category,Revenue\n";

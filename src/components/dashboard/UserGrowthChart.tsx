@@ -19,7 +19,7 @@ type UserGrowthItem = {
 
 export default function UserGrowthChart() {
   const { data, isUpdating } = useLiveData<UserGrowthItem>(
-    "revenueByCategory",
+    "analytics",
     (val) => {
       const userGrowthData = val.userGrowth || {};
 
