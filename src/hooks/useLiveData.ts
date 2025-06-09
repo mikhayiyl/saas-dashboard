@@ -1,6 +1,6 @@
 import { db } from "@/lib/firebase";
 import { onValue, ref } from "firebase/database";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 export function useLiveData<T, Raw extends Record<string, unknown>>(
   path: string,
@@ -9,9 +9,6 @@ export function useLiveData<T, Raw extends Record<string, unknown>>(
   const [data, setData] = useState<T[]>([]);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-
-  // Memoize transform avoid inifinite loops
-  const stableTransform = useMemo(() => transform, [transform]);
 
   useEffect(() => {
     let isMounted = true;
@@ -25,7 +22,7 @@ export function useLiveData<T, Raw extends Record<string, unknown>>(
 
         try {
           const val = snapshot.val();
-          setData(val ? stableTransform(val) : []);
+          setData(val ? transform(val) : []);
           setError(null);
         } catch (err) {
           setError(err as Error);
@@ -34,11 +31,10 @@ export function useLiveData<T, Raw extends Record<string, unknown>>(
 
         setTimeout(() => {
           if (isMounted) setIsUpdating(false);
-        }, 300); // Debounce delay
+        }, 300);
       },
       (err: Error) => {
         if (!isMounted) return;
-
         setError(err);
         setData([]);
         setIsUpdating(false);
@@ -46,15 +42,43 @@ export function useLiveData<T, Raw extends Record<string, unknown>>(
     );
 
     return () => {
+      unsubscribe(); // Stop listening first
       isMounted = false;
-      unsubscribe();
     };
-  }, [path, stableTransform]);
+  }, [path, transform]);
+
+  const retry = () => {
+    setIsUpdating(true);
+    setError(null);
+
+    const dbRef = ref(db, path);
+    onValue(
+      dbRef,
+      (snapshot) => {
+        try {
+          const val = snapshot.val();
+          setData(val ? transform(val) : []);
+          setError(null);
+        } catch (err) {
+          setError(err as Error);
+          setData([]);
+        }
+
+        setTimeout(() => setIsUpdating(false), 300);
+      },
+      (err: Error) => {
+        setError(err);
+        setData([]);
+        setIsUpdating(false);
+      },
+      { onlyOnce: true }
+    );
+  };
 
   return {
     data,
     isUpdating,
     error,
-    retry: () => window.location.reload(), // Fallback recovery
+    retry,
   };
 }
