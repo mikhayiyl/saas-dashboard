@@ -15,7 +15,7 @@ export default function Dashboard() {
       {/* <UserGrowthChart /> */}
 
       {/* Revenue by Category Chart */}
-      {/* <RevenueByCategoryChart /> */}
+      <RevenueByCategoryChart />
     </main>
   );
 }
