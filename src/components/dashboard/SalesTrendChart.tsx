@@ -62,13 +62,17 @@ export default function SalesTrendsChart() {
         </h2>
         <div className="flex items-center gap-3">
           {isUpdating && (
-            <span className="text-sm text-amber-500 animate-pulse">
+            <span
+              className="text-sm text-amber-500 animate-pulse"
+              aria-live="polite"
+            >
               Updating…
             </span>
           )}
+
           <button
             onClick={handleExportCSV}
-            className="px-2 py-1 text-xs bg-green-100 text-green-600 rounded hover:bg-green-200 transition dark:bg-green-900 dark:text-green-300 dark:hover:bg-green-800"
+            className="px-2 py-1 text-xs bg-green-100 text-green-600 rounded hover:bg-green-200 transition dark:bg-green-900 dark:text-green-300 dark:hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
           >
             Export CSV
           </button>
@@ -76,11 +80,16 @@ export default function SalesTrendsChart() {
       </div>
 
       {error && (
-        <div className="text-sm text-red-500 dark:text-red-400 mb-4">
-          Error: {error.message}
+        <div
+          className="text-sm text-red-500 dark:text-red-400 mb-4"
+          role="alert"
+        >
+          <p>⚠️ Error: {error.message}</p>
           <button
             onClick={retry}
+            disabled={isUpdating}
             className="ml-2 px-2 py-1 text-xs bg-red-200 text-red-600 rounded hover:bg-red-300 transition dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
+            aria-label="Retry loading sales trends"
           >
             Retry
           </button>
@@ -98,7 +107,7 @@ export default function SalesTrendsChart() {
           ))}
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={250}>
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="date" />
