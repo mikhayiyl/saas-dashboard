@@ -1,7 +1,6 @@
 import { useLiveData } from "@/hooks/useLiveData";
 import { motion } from "framer-motion";
 import { saveAs } from "file-saver";
-
 import {
   CartesianGrid,
   Line,
@@ -17,27 +16,26 @@ type UserGrowthItem = {
   users: number;
 };
 
+type RawAnalytics = {
+  userGrowth: {
+    [date: string]: {
+      newUsers: number;
+    };
+  };
+};
+
+const transform = (val: RawAnalytics): UserGrowthItem[] => {
+  return Object.entries(val?.userGrowth || {}).map(([date, entry]) => ({
+    date,
+    users: entry?.newUsers ?? 0,
+  }));
+};
+
 export default function UserGrowthChart() {
-  const { data, isUpdating } = useLiveData<UserGrowthItem>(
-    "analytics",
-    (val) => {
-      const userGrowthData = val.userGrowth || {};
-
-      return Object.entries(userGrowthData).map(([date, entry]) => {
-        if (!entry || typeof entry !== "object" || !("activeUsers" in entry)) {
-          console.warn(`Invalid entry for date ${date}:`, entry);
-          return { date, users: 0 };
-        }
-
-        const typedEntry = entry as { activeUsers: number };
-
-        return {
-          date,
-          users: Number(typedEntry.activeUsers) || 0,
-        };
-      });
-    }
-  );
+  const { data, isUpdating, error, retry } = useLiveData<
+    UserGrowthItem,
+    RawAnalytics
+  >("analytics", transform);
 
   const handleExportCSV = () => {
     const csvHeader = "Date,Users\n";
@@ -53,40 +51,76 @@ export default function UserGrowthChart() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-white rounded-xl p-4 shadow-md"
+      className="bg-white dark:bg-zinc-900 rounded-xl p-4 shadow-md"
     >
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-gray-800">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
           User Growth (Live)
         </h2>
         <div className="flex items-center gap-3">
           {isUpdating && (
-            <span className="text-sm text-amber-500 animate-pulse">
+            <span
+              className="text-sm text-amber-500 animate-pulse"
+              aria-live="polite"
+            >
               Updating…
             </span>
           )}
+
           <button
             onClick={handleExportCSV}
-            className="px-2 py-1 text-xs bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition"
+            className="px-2 py-1 text-xs bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition dark:bg-blue-900 dark:text-blue-300 dark:hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             Export CSV
           </button>
         </div>
       </div>
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="date" scale="point" />
-          <YAxis />
-          <Tooltip />
-          <Line
-            type="monotone"
-            dataKey="users"
-            stroke="#3b82f6"
-            strokeWidth={2}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+
+      {error && (
+        <div
+          className="text-sm text-red-500 dark:text-red-400 mb-4"
+          role="alert"
+        >
+          <p>⚠️ Error: {error.message}</p>
+          <button
+            onClick={retry}
+            disabled={isUpdating}
+            className="ml-2 px-2 py-1 text-xs bg-red-200 text-red-600 rounded hover:bg-red-300 transition dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
+            aria-label="Retry loading user growth data"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {data.length === 0 && !error ? (
+        <div className="h-[300px] w-full flex flex-col justify-between px-4 py-6 animate-pulse">
+          {[...Array(5)].map((_, i) => (
+            <div
+              key={i}
+              className="h-[2px] bg-gray-300 dark:bg-zinc-700 rounded w-full"
+              style={{ width: `${80 + Math.random() * 20}%` }}
+            />
+          ))}
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={250}>
+          <LineChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip />
+            <Line
+              type="monotone"
+              dataKey="users"
+              stroke="#3b82f6"
+              strokeWidth={2}
+              dot={{ r: 3 }}
+              activeDot={{ r: 6 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      )}
     </motion.section>
   );
 }

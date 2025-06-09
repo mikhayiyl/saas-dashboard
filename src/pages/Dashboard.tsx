@@ -12,7 +12,7 @@ export default function Dashboard() {
       <SalesTrendChart />
 
       {/* User Growth Chart */}
-      {/* <UserGrowthChart /> */}
+      <UserGrowthChart />
 
       {/* Revenue by Category Chart */}
       <RevenueByCategoryChart />
