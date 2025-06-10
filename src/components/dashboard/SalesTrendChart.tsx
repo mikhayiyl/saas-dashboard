@@ -2,6 +2,7 @@ import { useLiveData } from "@/hooks/useLiveData";
 import { motion } from "framer-motion";
 import { saveAs } from "file-saver";
 import { format, parseISO } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import {
   CartesianGrid,
@@ -99,13 +100,12 @@ export default function SalesTrendsChart() {
       )}
 
       {data.length === 0 && !error ? (
-        <div className="h-[300px] w-full flex flex-col justify-between px-4 py-6 animate-pulse">
-          {[...Array(5)].map((_, i) => (
-            <div
-              key={i}
-              className="h-[2px] bg-gray-300 dark:bg-zinc-700 rounded w-full"
-              style={{ width: `${80 + Math.random() * 20}%` }}
-            />
+        <div className="h-[250px] w-full grid grid-cols-12 gap-2 px-4 py-6">
+          {[...Array(10)].map((_, i) => (
+            <div key={i} className="col-span-1 flex flex-col items-center">
+              <Skeleton className="h-24 w-1.5 bg-gray-300 dark:bg-zinc-700 rounded" />
+              <Skeleton className="mt-2 h-3 w-6 bg-gray-300 dark:bg-zinc-700 rounded" />
+            </div>
           ))}
         </div>
       ) : (
