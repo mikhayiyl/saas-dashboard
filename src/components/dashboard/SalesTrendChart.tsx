@@ -1,6 +1,8 @@
 import { useLiveData } from "@/hooks/useLiveData";
 import { motion } from "framer-motion";
 import { saveAs } from "file-saver";
+import { format, parseISO } from "date-fns";
+
 import {
   CartesianGrid,
   Line,
@@ -110,7 +112,11 @@ export default function SalesTrendsChart() {
         <ResponsiveContainer width="100%" height={250}>
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
+            <XAxis
+              dataKey="date"
+              tickFormatter={(str) => format(parseISO(str), "MMM d")}
+            />
+
             <YAxis />
             <Tooltip />
             <Line
