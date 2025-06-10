@@ -109,16 +109,20 @@ export default function SalesTrendsChart() {
           ))}
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={250}>
+        <ResponsiveContainer width="100%" height={300}>
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               dataKey="date"
               tickFormatter={(str) => format(parseISO(str), "MMM d")}
             />
-
             <YAxis />
-            <Tooltip />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "var(--foreground)",
+                color: "var(--background)",
+              }}
+            />
             <Line
               type="monotone"
               dataKey="sales"

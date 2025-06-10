@@ -1,16 +1,16 @@
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-} from "recharts";
+import { useLiveData } from "@/hooks/useLiveData";
 import { saveAs } from "file-saver";
 import { motion } from "framer-motion";
-import { useLiveData } from "@/hooks/useLiveData";
-import { useEffect, useState } from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 type RevenueItem = {
   category: string;
@@ -50,17 +50,6 @@ export default function RevenueByCategoryChart() {
     });
     saveAs(blob, "revenue_by_category.csv");
   };
-
-  // Inside your component
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = () => setIsDarkMode(mediaQuery.matches);
-    handleChange();
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
-  }, []);
 
   return (
     <motion.section
@@ -119,30 +108,25 @@ export default function RevenueByCategoryChart() {
       ) : (
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={data}>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke={isDarkMode ? "#444" : "#ccc"}
-            />
-            <XAxis
-              dataKey="category"
-              stroke={isDarkMode ? "#ccc" : "#333"} // Axis line
-              tick={{ fill: isDarkMode ? "#000" : "#1f2937", fontSize: 12 }} // Tick labels
-            />
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="category" />
 
-            <YAxis
-              stroke={isDarkMode ? "#ccc" : "#333"}
-              tick={{ fill: isDarkMode ? "#000" : "#1f2937", fontSize: 12 }}
-            />
+            <YAxis />
 
             <Tooltip
               contentStyle={{
-                backgroundColor: isDarkMode ? "#1f2937" : "#ffffff",
-                borderColor: isDarkMode ? "#4b5563" : "#e5e7eb",
-                color: isDarkMode ? "#f3f4f6" : "#111827",
+                backgroundColor: "var(--foreground)",
+                color: "var(--background)",
               }}
-              itemStyle={{
-                color: isDarkMode ? "#f3f4f6" : "#111827",
-              }}
+            />
+
+            <Line
+              type="monotone"
+              dataKey="revenue"
+              stroke="#3b82f6"
+              strokeWidth={2}
+              dot={{ r: 3 }}
+              activeDot={{ r: 6 }}
             />
 
             <Bar

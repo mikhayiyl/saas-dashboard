@@ -104,12 +104,17 @@ export default function UserGrowthChart() {
           ))}
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={250}>
+        <ResponsiveContainer width="100%" height={300}>
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="date" />
             <YAxis />
-            <Tooltip />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "var(--foreground)",
+                color: "var(--background)",
+              }}
+            />
             <Line
               type="monotone"
               dataKey="users"
