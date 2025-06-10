@@ -37,7 +37,9 @@ const EditUserDialog: React.FC<{
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">Edit</Button>
+        <Button variant="outline" className="w-full md:w-auto">
+          Edit
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -49,24 +51,47 @@ const EditUserDialog: React.FC<{
         <div className="grid gap-4">
           <div className="grid gap-3">
             <Label htmlFor="name">Name</Label>
-            <Input id="name" name="name" defaultValue={user.name} />
+            <Input
+              id="name"
+              name="name"
+              defaultValue={user.name}
+              className="w-full"
+            />
           </div>
           <div className="grid gap-3">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" name="email" defaultValue={user.email} />
+            <Input
+              id="email"
+              name="email"
+              defaultValue={user.email}
+              className="w-full"
+            />
           </div>
           <div className="grid gap-3">
             <Label htmlFor="role">Role</Label>
-            <Input id="role" name="role" defaultValue={user.role} />
+            <Input
+              id="role"
+              name="role"
+              defaultValue={user.role}
+              className="w-full"
+            />
           </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="flex flex-col md:flex-row gap-2">
           <DialogClose asChild>
-            <Button variant="outline" onClick={handleClose}>
+            <Button
+              variant="outline"
+              className="w-full md:w-auto"
+              onClick={handleClose}
+            >
               Cancel
             </Button>
           </DialogClose>
-          <Button type="button" onClick={handleEdit}>
+          <Button
+            type="button"
+            className="w-full md:w-auto"
+            onClick={handleEdit}
+          >
             Save changes
           </Button>
         </DialogFooter>

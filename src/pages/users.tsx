@@ -1,50 +1,85 @@
-import { useState } from "react";
+import { Table, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import UsersTable, { type User } from "@/components/users/UsersTable";
 import EditUserDialog from "@/components/users/EditUserModal";
 
-const Users = () => {
-  const [search, setSearch] = useState<string>("");
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+type User = {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+};
 
-  const handleEdit = (user: User) => {
-    console.log("Editing user:", user);
-    setSelectedUser(user);
-  };
+const usersData: User[] = [
+  { id: 1, name: "Alice Johnson", email: "alice@example.com", role: "Admin" },
+  { id: 2, name: "Bob Smith", email: "bob@example.com", role: "Editor" },
+  {
+    id: 3,
+    name: "Charlie Brown",
+    email: "charlie@example.com",
+    role: "Viewer",
+  },
+];
 
-  const handleClose = () => {
-    console.log("Closing edit modal");
-    setSelectedUser(null);
-  };
+const UsersTable: React.FC<{
+  search: string;
+  onEdit: (user: User) => void;
+}> = ({ search, onEdit }) => {
+  const filteredUsers = usersData.filter(
+    (user) =>
+      user.name.toLowerCase().includes(search.toLowerCase()) ||
+      user.email.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-semibold">Users</h1>
-        <div className="flex gap-2">
-          <Input
-            type="text"
-            placeholder="Search users..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-64"
-          />
-          <Button>Add User</Button>
-        </div>
-      </div>
-
-      <UsersTable search={search} onEdit={handleEdit} />
-
-      {selectedUser && (
-        <EditUserDialog
-          user={selectedUser}
-          onEdit={handleEdit}
-          onClose={handleClose}
-        />
-      )}
+    <div className="overflow-x-auto">
+      <Table className="w-full">
+        <TableHead>
+          <TableRow>
+            <TableCell>Name</TableCell>
+            <TableCell>Email</TableCell>
+            <TableCell>Role</TableCell>
+            <TableCell>Actions</TableCell>
+          </TableRow>
+        </TableHead>
+        <tbody>
+          {filteredUsers.length > 0 ? (
+            filteredUsers.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell className="text-sm md:text-base">
+                  {user.name}
+                </TableCell>
+                <TableCell className="text-sm md:text-base">
+                  {user.email}
+                </TableCell>
+                <TableCell className="text-sm md:text-base">
+                  {user.role}
+                </TableCell>
+                <TableCell className="flex flex-col md:flex-row gap-2">
+                  <EditUserDialog
+                    user={user}
+                    onEdit={onEdit}
+                    onClose={() => console.log("Dialog closed")}
+                  />
+                  <Button variant="destructive" className="w-full md:w-auto">
+                    Delete
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell
+                colSpan={4}
+                className="text-center text-gray-500 text-sm md:text-base"
+              >
+                No users found.
+              </TableCell>
+            </TableRow>
+          )}
+        </tbody>
+      </Table>
     </div>
   );
 };
 
-export default Users;
+export default UsersTable;
