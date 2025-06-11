@@ -10,12 +10,16 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { format, parseISO, startOfWeek, startOfMonth } from "date-fns";
+import { useMemo, useState } from "react";
 
+// Display type
 type UserGrowthItem = {
   date: string;
   users: number;
 };
 
+// Raw Firebase structure type
 type RawAnalytics = {
   userGrowth: {
     [date: string]: {
@@ -24,6 +28,7 @@ type RawAnalytics = {
   };
 };
 
+// Transform logic for daily
 const transform = (val: RawAnalytics): UserGrowthItem[] => {
   return Object.entries(val?.userGrowth || {}).map(([date, entry]) => ({
     date,
@@ -31,19 +36,53 @@ const transform = (val: RawAnalytics): UserGrowthItem[] => {
   }));
 };
 
+// Period options
+const periods = ["Daily", "Weekly", "Monthly"] as const;
+type PeriodType = (typeof periods)[number];
+
+// Group by week or month
+const groupDataByPeriod = (
+  data: UserGrowthItem[],
+  period: PeriodType
+): UserGrowthItem[] => {
+  if (period === "Daily") return data;
+
+  const grouped: Record<string, number> = {};
+
+  data.forEach(({ date, users }) => {
+    const key =
+      period === "Weekly"
+        ? format(startOfWeek(parseISO(date)), "yyyy-MM-dd")
+        : format(startOfMonth(parseISO(date)), "yyyy-MM");
+
+    grouped[key] = (grouped[key] || 0) + users;
+  });
+
+  return Object.entries(grouped).map(([date, users]) => ({ date, users }));
+};
+
 export default function UserGrowthChart() {
+  const [period, setPeriod] = useState<PeriodType>("Daily");
+
   const { data, isUpdating, error, retry } = useLiveData<
     UserGrowthItem,
     RawAnalytics
   >("analytics", transform);
 
+  const filteredData = useMemo(
+    () => groupDataByPeriod(data, period),
+    [data, period]
+  );
+
   const handleExportCSV = () => {
     const csvHeader = "Date,Users\n";
-    const csvRows = data.map((item) => `${item.date},${item.users}`).join("\n");
+    const csvRows = filteredData
+      .map((item) => `${item.date},${item.users}`)
+      .join("\n");
     const blob = new Blob([csvHeader + csvRows], {
       type: "text/csv;charset=utf-8",
     });
-    saveAs(blob, "user_growth.csv");
+    saveAs(blob, `user_growth_${period.toLowerCase()}.csv`);
   };
 
   return (
@@ -66,6 +105,18 @@ export default function UserGrowthChart() {
               Updating…
             </span>
           )}
+
+          <select
+            value={period}
+            onChange={(e) => setPeriod(e.target.value as PeriodType)}
+            className="text-sm bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 px-2 py-1 rounded focus:outline-none"
+          >
+            {periods.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
 
           <button
             onClick={handleExportCSV}
@@ -93,7 +144,7 @@ export default function UserGrowthChart() {
         </div>
       )}
 
-      {data.length === 0 && !error ? (
+      {filteredData.length === 0 && !error ? (
         <div className="h-[300px] w-full flex flex-col justify-between px-4 py-6 animate-pulse">
           {[...Array(5)].map((_, i) => (
             <div
@@ -104,14 +155,18 @@ export default function UserGrowthChart() {
           ))}
         </div>
       ) : (
-        <ResponsiveContainer
-          width="100%"
-          height={300}
-          className=" text-gray-800 dark:text-gray-100"
-        >
-          <LineChart data={data}>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={filteredData}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" color="red" />
+            <XAxis
+              dataKey="date"
+              tickFormatter={(str) =>
+                format(
+                  parseISO(str),
+                  period === "Monthly" ? "MMM yyyy" : "MMM d"
+                )
+              }
+            />
             <YAxis />
             <Tooltip
               contentStyle={{
