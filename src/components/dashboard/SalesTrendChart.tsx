@@ -1,9 +1,8 @@
 import { useLiveData } from "@/hooks/useLiveData";
 import { motion } from "framer-motion";
 import { saveAs } from "file-saver";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, startOfWeek, startOfMonth } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
-
 import {
   CartesianGrid,
   Line,
@@ -13,6 +12,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useMemo, useState } from "react";
 
 //  display type
 type SalesTrendItem = {
@@ -29,7 +29,7 @@ type RawAnalytics = {
   };
 };
 
-// Transform logic - moved outside to prevent redefinition
+// Transform logic for daily
 const transform = (val: RawAnalytics): SalesTrendItem[] => {
   return Object.entries(val?.salesTrend || {}).map(([date, entry]) => ({
     date,
@@ -37,19 +37,53 @@ const transform = (val: RawAnalytics): SalesTrendItem[] => {
   }));
 };
 
+// Period options
+const periods = ["Daily", "Weekly", "Monthly"] as const;
+type PeriodType = (typeof periods)[number];
+
+// Group by week or month
+const groupDataByPeriod = (
+  data: SalesTrendItem[],
+  period: PeriodType
+): SalesTrendItem[] => {
+  if (period === "Daily") return data;
+
+  const grouped: Record<string, number> = {};
+
+  data.forEach(({ date, sales }) => {
+    const key =
+      period === "Weekly"
+        ? format(startOfWeek(parseISO(date)), "yyyy-MM-dd")
+        : format(startOfMonth(parseISO(date)), "yyyy-MM");
+
+    grouped[key] = (grouped[key] || 0) + sales;
+  });
+
+  return Object.entries(grouped).map(([date, sales]) => ({ date, sales }));
+};
+
 export default function SalesTrendsChart() {
+  const [period, setPeriod] = useState<PeriodType>("Daily");
+
   const { data, isUpdating, error, retry } = useLiveData<
     SalesTrendItem,
     RawAnalytics
   >("analytics", transform);
 
+  const filteredData = useMemo(
+    () => groupDataByPeriod(data, period),
+    [data, period]
+  );
+
   const handleExportCSV = () => {
     const csvHeader = "Date,Sales\n";
-    const csvRows = data.map((item) => `${item.date},${item.sales}`).join("\n");
+    const csvRows = filteredData
+      .map((item) => `${item.date},${item.sales}`)
+      .join("\n");
     const blob = new Blob([csvHeader + csvRows], {
       type: "text/csv;charset=utf-8",
     });
-    saveAs(blob, "sales_trends.csv");
+    saveAs(blob, `sales_trends_${period.toLowerCase()}.csv`);
   };
 
   return (
@@ -72,6 +106,18 @@ export default function SalesTrendsChart() {
               Updating…
             </span>
           )}
+
+          <select
+            value={period}
+            onChange={(e) => setPeriod(e.target.value as PeriodType)}
+            className="text-sm bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 px-2 py-1 rounded focus:outline-none"
+          >
+            {periods.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
 
           <button
             onClick={handleExportCSV}
@@ -99,7 +145,7 @@ export default function SalesTrendsChart() {
         </div>
       )}
 
-      {data.length === 0 && !error ? (
+      {filteredData.length === 0 && !error ? (
         <div className="h-[250px] w-full grid grid-cols-12 gap-2 px-4 py-6">
           {[...Array(10)].map((_, i) => (
             <div key={i} className="col-span-1 flex flex-col items-center">
@@ -110,11 +156,16 @@ export default function SalesTrendsChart() {
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
+          <LineChart data={filteredData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               dataKey="date"
-              tickFormatter={(str) => format(parseISO(str), "MMM d")}
+              tickFormatter={(str) =>
+                format(
+                  parseISO(str),
+                  period === "Monthly" ? "MMM yyyy" : "MMM d"
+                )
+              }
             />
             <YAxis />
             <Tooltip
