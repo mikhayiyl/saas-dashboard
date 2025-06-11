@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLiveData } from "@/hooks/useLiveData";
 import { saveAs } from "file-saver";
 import { motion } from "framer-motion";
@@ -20,7 +21,7 @@ type RevenueItem = {
 type RawAnalytics = {
   revenueByCategory: {
     [key: string]: {
-      category: string;
+      category?: string;
       totalRevenue: number;
     };
   };
@@ -29,20 +30,34 @@ type RawAnalytics = {
 const transform = (val: RawAnalytics): RevenueItem[] => {
   const revenueData = val.revenueByCategory || {};
   return Object.entries(revenueData).map(([category, entry]) => ({
-    category, // key is the category name
+    category,
     revenue: Number(entry.totalRevenue) || 0,
   }));
 };
 
 export default function RevenueByCategoryChart() {
+  const [period, setPeriod] = useState<"daily" | "weekly" | "monthly">(
+    "weekly"
+  );
+
   const { data, isUpdating, error, retry } = useLiveData<
     RevenueItem,
     RawAnalytics
   >("analytics", transform);
 
+  const filteredData = data.map((item) => {
+    let modifier = 1;
+    if (period === "daily") modifier = 1 / 7;
+    if (period === "monthly") modifier = 4;
+    return {
+      ...item,
+      revenue: Math.round(item.revenue * modifier),
+    };
+  });
+
   const handleExportCSV = () => {
     const csvHeader = "Category,Revenue\n";
-    const csvRows = data
+    const csvRows = filteredData
       .map((item) => `${item.category},${item.revenue}`)
       .join("\n");
     const blob = new Blob([csvHeader + csvRows], {
@@ -60,9 +75,22 @@ export default function RevenueByCategoryChart() {
     >
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-          Revenue by Category (Live)
+          Revenue by Category (
+          {period.charAt(0).toUpperCase() + period.slice(1)})
         </h2>
         <div className="flex items-center gap-3">
+          <select
+            value={period}
+            onChange={(e) =>
+              setPeriod(e.target.value as "daily" | "weekly" | "monthly")
+            }
+            className="text-xs bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-100 px-2 py-1 rounded"
+          >
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+
           {isUpdating && (
             <span
               className="text-sm text-amber-500 animate-pulse"
@@ -107,19 +135,16 @@ export default function RevenueByCategoryChart() {
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={data}>
+          <BarChart data={filteredData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="category" />
-
             <YAxis />
-
             <Tooltip
               contentStyle={{
                 backgroundColor: "var(--foreground)",
                 color: "var(--background)",
               }}
             />
-
             <Line
               type="monotone"
               dataKey="revenue"
@@ -128,7 +153,6 @@ export default function RevenueByCategoryChart() {
               dot={{ r: 3 }}
               activeDot={{ r: 6 }}
             />
-
             <Bar
               dataKey="revenue"
               fill="#3b82f6"
