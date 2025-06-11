@@ -1,3 +1,4 @@
+import ActiveUsersChart from "@/components/dashboard/ActiveUsers";
 import RevenueByCategoryChart from "@/components/dashboard/RevenueByCategoryChart";
 import SalesTrendChart from "@/components/dashboard/SalesTrendChart";
 import UserGrowthChart from "@/components/dashboard/UserGrowthChart";
@@ -19,6 +20,7 @@ export default function Dashboard() {
 
         {/* Revenue by Category Chart */}
         <RevenueByCategoryChart />
+        <ActiveUsersChart />
       </div>
     </main>
   );
