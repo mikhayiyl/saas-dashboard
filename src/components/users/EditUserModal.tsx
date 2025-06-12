@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -9,53 +10,54 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
-type User = {
-  id: number;
+export type User = {
+  id?: string;
   name: string;
   email: string;
   role: string;
-  lastSeen: number;
+  lastSeen?: number;
 };
 
 const EditUserModal: React.FC<{
-  user: User;
-  onEdit: (updated: User) => void;
+  user?: User;
+  onEdit: (user: User) => void;
   onClose: () => void;
 }> = ({ user, onEdit, onClose }) => {
-  const [name, setName] = useState(user.name);
-  const [email, setEmail] = useState(user.email);
-  const [role, setRole] = useState(user.role);
+  const [name, setName] = useState(user?.name ?? "");
+  const [email, setEmail] = useState(user?.email ?? "");
+  const [role, setRole] = useState(user?.role ?? "");
 
   useEffect(() => {
-    setName(user.name);
-    setEmail(user.email);
-    setRole(user.role);
+    setName(user?.name ?? "");
+    setEmail(user?.email ?? "");
+    setRole(user?.role ?? "");
   }, [user]);
 
   const handleSave = () => {
-    const updatedUser: User = {
-      ...user,
+    onEdit({
+      id: user?.id,
       name,
       email,
       role,
-    };
-    onEdit(updatedUser);
-    onClose();
+      lastSeen: user?.lastSeen ?? Date.now(),
+    });
   };
 
   return (
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit User</DialogTitle>
+          <DialogTitle>{user ? "Edit User" : "Add User"}</DialogTitle>
           <DialogDescription>
-            Modify the user details and save changes.
+            {user
+              ? "Modify the user details."
+              : "Fill in the details to create a user."}
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4">
-          <div className="grid gap-3">
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
             <Label htmlFor="name">Name</Label>
             <Input
               id="name"
@@ -63,7 +65,7 @@ const EditUserModal: React.FC<{
               onChange={(e) => setName(e.target.value)}
             />
           </div>
-          <div className="grid gap-3">
+          <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
@@ -71,7 +73,7 @@ const EditUserModal: React.FC<{
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          <div className="grid gap-3">
+          <div className="grid gap-2">
             <Label htmlFor="role">Role</Label>
             <Input
               id="role"
@@ -81,15 +83,17 @@ const EditUserModal: React.FC<{
           </div>
         </div>
         <DialogFooter className="flex flex-col md:flex-row gap-2">
+          <DialogClose asChild>
+            <Button variant="outline" className="w-full md:w-auto">
+              Cancel
+            </Button>
+          </DialogClose>
           <Button
-            variant="outline"
-            onClick={onClose}
+            type="button"
             className="w-full md:w-auto"
+            onClick={handleSave}
           >
-            Cancel
-          </Button>
-          <Button onClick={handleSave} className="w-full md:w-auto">
-            Save changes
+            Save
           </Button>
         </DialogFooter>
       </DialogContent>

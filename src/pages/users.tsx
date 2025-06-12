@@ -1,22 +1,64 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import UsersTable, { type User } from "@/components/users/UsersTable";
-import EditUserModal from "@/components/users/EditUserModal";
+import UsersTable from "@/components/users/UsersTable";
+import EditUserModal, { type User } from "@/components/users/EditUserModal";
+import {
+  addUser,
+  deleteUser,
+  fetchUsers,
+  updateUser,
+} from "@/lib/firebaseUsers";
 
 const Users = () => {
   const [search, setSearch] = useState<string>("");
+  const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    fetchUsers().then(setUsers);
+  }, []);
+
+  const handleSave = async (user: User) => {
+    if (user.id) {
+      await updateUser(user);
+    } else {
+      await addUser(user);
+    }
+
+    const updatedUsers = await fetchUsers();
+    setUsers(updatedUsers);
+    handleClose();
+  };
 
   const handleEdit = (user: User) => {
-    console.log("Editing user:", user);
     setSelectedUser(user);
+    setIsModalOpen(true);
+  };
+
+  const handleAdd = () => {
+    setSelectedUser(null);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (id: number) => {
+    await deleteUser(id);
+    const updatedUsers = await fetchUsers();
+    setUsers(updatedUsers);
   };
 
   const handleClose = () => {
-    console.log("Closing edit modal");
+    setIsModalOpen(false);
     setSelectedUser(null);
   };
+
+  const filteredUsers = users.filter((user) =>
+    [user.name, user.email]
+      .join(" ")
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  );
 
   return (
     <div className="p-4 max-w-screen-lg mx-auto">
@@ -30,16 +72,22 @@ const Users = () => {
             onChange={(e) => setSearch(e.target.value)}
             className="w-full md:w-64"
           />
-          <Button className="w-full md:w-auto">Add User</Button>
+          <Button className="w-full md:w-auto" onClick={handleAdd}>
+            Add User
+          </Button>
         </div>
       </div>
 
-      <UsersTable search={search} onEdit={handleEdit} />
+      <UsersTable
+        users={filteredUsers}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
 
-      {selectedUser && (
+      {isModalOpen && (
         <EditUserModal
-          user={selectedUser}
-          onEdit={handleEdit}
+          user={selectedUser ?? undefined}
+          onEdit={handleSave}
           onClose={handleClose}
         />
       )}
