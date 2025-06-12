@@ -17,9 +17,10 @@ type User = {
   name: string;
   email: string;
   role: string;
+  lastSeen: number;
 };
 
-const EditUserDialog: React.FC<{
+const EditUserModal: React.FC<{
   user: User;
   onEdit: (user: User) => void;
   onClose: () => void;
@@ -100,4 +101,4 @@ const EditUserDialog: React.FC<{
   );
 };
 
-export default EditUserDialog;
+export default EditUserModal;

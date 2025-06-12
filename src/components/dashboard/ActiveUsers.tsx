@@ -19,6 +19,7 @@ type ActiveUsersItem = {
 
 const transformActiveUsers = (val: Record<string, any>): ActiveUsersItem[] => {
   const users = Object.values(val || {});
+  console.log(users);
 
   const today = new Date();
   const daysBack = 7;
