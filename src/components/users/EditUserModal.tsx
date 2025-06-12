@@ -1,16 +1,15 @@
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useState, useEffect } from "react";
 
 type User = {
   id: number;
@@ -22,26 +21,32 @@ type User = {
 
 const EditUserModal: React.FC<{
   user: User;
-  onEdit: (user: User) => void;
+  onEdit: (updated: User) => void;
   onClose: () => void;
 }> = ({ user, onEdit, onClose }) => {
-  const handleEdit = () => {
-    console.log("Editing user:", user);
-    onEdit(user);
-  };
+  const [name, setName] = useState(user.name);
+  const [email, setEmail] = useState(user.email);
+  const [role, setRole] = useState(user.role);
 
-  const handleClose = () => {
-    console.log("Closing dialog for user:", user.name);
+  useEffect(() => {
+    setName(user.name);
+    setEmail(user.email);
+    setRole(user.role);
+  }, [user]);
+
+  const handleSave = () => {
+    const updatedUser: User = {
+      ...user,
+      name,
+      email,
+      role,
+    };
+    onEdit(updatedUser);
     onClose();
   };
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="w-full md:w-auto">
-          Edit
-        </Button>
-      </DialogTrigger>
+    <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Edit User</DialogTitle>
@@ -54,45 +59,36 @@ const EditUserModal: React.FC<{
             <Label htmlFor="name">Name</Label>
             <Input
               id="name"
-              name="name"
-              defaultValue={user.name}
-              className="w-full"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
             />
           </div>
           <div className="grid gap-3">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
-              name="email"
-              defaultValue={user.email}
-              className="w-full"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div className="grid gap-3">
             <Label htmlFor="role">Role</Label>
             <Input
               id="role"
-              name="role"
-              defaultValue={user.role}
-              className="w-full"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
             />
           </div>
         </div>
         <DialogFooter className="flex flex-col md:flex-row gap-2">
-          <DialogClose asChild>
-            <Button
-              variant="outline"
-              className="w-full md:w-auto"
-              onClick={handleClose}
-            >
-              Cancel
-            </Button>
-          </DialogClose>
           <Button
-            type="button"
+            variant="outline"
+            onClick={onClose}
             className="w-full md:w-auto"
-            onClick={handleEdit}
           >
+            Cancel
+          </Button>
+          <Button onClick={handleSave} className="w-full md:w-auto">
             Save changes
           </Button>
         </DialogFooter>

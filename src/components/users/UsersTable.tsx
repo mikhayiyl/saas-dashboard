@@ -73,11 +73,13 @@ const UsersTable: React.FC<{
                   {user.role || "—"}
                 </TableCell>
                 <TableCell className="flex flex-col md:flex-row gap-2">
-                  <EditUserDialog
-                    user={user}
-                    onEdit={onEdit}
-                    onClose={() => console.log("Dialog closed")}
-                  />
+                  <Button
+                    onClick={() => onEdit(user)}
+                    className="w-full md:w-auto"
+                  >
+                    Edit
+                  </Button>
+
                   <Button variant="destructive" className="w-full md:w-auto">
                     Delete
                   </Button>
