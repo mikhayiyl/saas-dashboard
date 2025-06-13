@@ -1,59 +1,23 @@
-import { useState } from "react";
-import { useLiveData } from "@/hooks/useLiveData";
+import UseActiverUsers from "@/hooks/UseActiverUsers";
 import { saveAs } from "file-saver";
 import { motion } from "framer-motion";
+import { useState } from "react";
 import {
-  LineChart,
-  Line,
   CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
-  ResponsiveContainer,
 } from "recharts";
-
-type ActiveUsersItem = {
-  date: string;
-  count: number;
-};
-
-const transformActiveUsers = (val: Record<string, any>): ActiveUsersItem[] => {
-  const users = Object.values(val || {});
-  console.log(users);
-
-  const today = new Date();
-  const daysBack = 7;
-
-  const result: ActiveUsersItem[] = [];
-
-  for (let i = 0; i < daysBack; i++) {
-    const date = new Date(today);
-    date.setDate(today.getDate() - i);
-    const iso = date.toISOString().split("T")[0];
-
-    const count = users.filter((user: any) => {
-      const userDate = new Date(user.lastSeen || 0);
-      return (
-        userDate.toISOString().split("T")[0] === iso &&
-        today.getTime() - userDate.getTime() <= 10 * 60 * 1000 // active if seen in last 10 min
-      );
-    }).length;
-
-    result.push({ date: iso, count });
-  }
-
-  return result.reverse();
-};
 
 export default function ActiveUsersChart() {
   const [period, setPeriod] = useState<"daily" | "weekly" | "monthly">(
     "weekly"
   );
 
-  const { data, isUpdating, error, retry } = useLiveData<
-    ActiveUsersItem,
-    Record<string, any>
-  >("users", transformActiveUsers);
+  const { data, isUpdating, error, retry } = UseActiverUsers();
 
   const filteredData = data.map((item) => {
     let modifier = 1;

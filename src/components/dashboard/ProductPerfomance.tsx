@@ -1,4 +1,4 @@
-import { useLiveData } from "@/hooks/useLiveData";
+import UseLiveProducts from "@/hooks/UseLiveProducts";
 import { saveAs } from "file-saver";
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -6,48 +6,20 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Line,
   Legend,
+  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 
-type ProductPerformanceItem = {
-  name: string;
-  score: number;
-  rating: number;
-};
-
-type RawProductPerformance = {
-  [product: string]: {
-    name: string;
-    sales: number;
-    returns: number;
-    rating: number;
-  };
-};
-
-const transformPerformanceData = (
-  val: RawProductPerformance
-): ProductPerformanceItem[] => {
-  return Object.entries(val || {}).map(([_, entry]) => ({
-    name: entry.name,
-    score: entry.sales - entry.returns,
-    rating: entry.rating,
-  }));
-};
-
 export default function ProductPerformanceChart() {
   const [period, setPeriod] = useState<"daily" | "weekly" | "monthly">(
     "weekly"
   );
 
-  const { data, isUpdating, error, retry } = useLiveData<
-    ProductPerformanceItem,
-    RawProductPerformance
-  >("product-performance", transformPerformanceData);
+  const { data, isUpdating, error, retry } = UseLiveProducts();
 
   const filteredData = data.map((item) => {
     let multiplier = 1;

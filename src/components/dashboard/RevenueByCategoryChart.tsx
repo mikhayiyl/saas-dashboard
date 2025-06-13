@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { useLiveData } from "@/hooks/useLiveData";
+import UseLiveRevenue from "@/hooks/UseLiveRevenue";
 import { saveAs } from "file-saver";
 import { motion } from "framer-motion";
+import { useState } from "react";
 import {
   Bar,
   BarChart,
@@ -13,37 +13,12 @@ import {
   YAxis,
 } from "recharts";
 
-type RevenueItem = {
-  category: string;
-  revenue: number;
-};
-
-type RawAnalytics = {
-  revenueByCategory: {
-    [key: string]: {
-      category?: string;
-      totalRevenue: number;
-    };
-  };
-};
-
-const transform = (val: RawAnalytics): RevenueItem[] => {
-  const revenueData = val.revenueByCategory || {};
-  return Object.entries(revenueData).map(([category, entry]) => ({
-    category,
-    revenue: Number(entry.totalRevenue) || 0,
-  }));
-};
-
 export default function RevenueByCategoryChart() {
   const [period, setPeriod] = useState<"daily" | "weekly" | "monthly">(
     "weekly"
   );
 
-  const { data, isUpdating, error, retry } = useLiveData<
-    RevenueItem,
-    RawAnalytics
-  >("analytics", transform);
+  const { data, isUpdating, error, retry } = UseLiveRevenue();
 
   const filteredData = data.map((item) => {
     let modifier = 1;

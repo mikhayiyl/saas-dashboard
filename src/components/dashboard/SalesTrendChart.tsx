@@ -1,8 +1,11 @@
-import { useLiveData } from "@/hooks/useLiveData";
-import { motion } from "framer-motion";
-import { saveAs } from "file-saver";
-import { format, parseISO, startOfWeek, startOfMonth } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
+import UseLiveSalesTrends, {
+  type SalesTrendItem,
+} from "@/hooks/UseLiveSalesTrends";
+import { format, parseISO, startOfMonth, startOfWeek } from "date-fns";
+import { saveAs } from "file-saver";
+import { motion } from "framer-motion";
+import { useMemo, useState } from "react";
 import {
   CartesianGrid,
   Line,
@@ -12,30 +15,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useMemo, useState } from "react";
-
-//  display type
-type SalesTrendItem = {
-  date: string;
-  sales: number;
-};
-
-// Raw Firebase structure type
-type RawAnalytics = {
-  salesTrend: {
-    [date: string]: {
-      totalSales: number;
-    };
-  };
-};
-
-// Transform logic for daily
-const transform = (val: RawAnalytics): SalesTrendItem[] => {
-  return Object.entries(val?.salesTrend || {}).map(([date, entry]) => ({
-    date,
-    sales: entry?.totalSales ?? 0,
-  }));
-};
 
 // Period options
 const periods = ["Daily", "Weekly", "Monthly"] as const;
@@ -65,10 +44,7 @@ const groupDataByPeriod = (
 export default function SalesTrendsChart() {
   const [period, setPeriod] = useState<PeriodType>("Daily");
 
-  const { data, isUpdating, error, retry } = useLiveData<
-    SalesTrendItem,
-    RawAnalytics
-  >("analytics", transform);
+  const { data, isUpdating, error, retry } = UseLiveSalesTrends();
 
   const filteredData = useMemo(
     () => groupDataByPeriod(data, period),

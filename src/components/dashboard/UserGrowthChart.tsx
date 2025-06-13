@@ -1,6 +1,10 @@
-import { useLiveData } from "@/hooks/useLiveData";
-import { motion } from "framer-motion";
+import UseLiveUserGrowth, {
+  type UserGrowthItem,
+} from "@/hooks/UseLiveUserGrowth";
+import { format, parseISO, startOfMonth, startOfWeek } from "date-fns";
 import { saveAs } from "file-saver";
+import { motion } from "framer-motion";
+import { useMemo, useState } from "react";
 import {
   CartesianGrid,
   Line,
@@ -10,31 +14,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { format, parseISO, startOfWeek, startOfMonth } from "date-fns";
-import { useMemo, useState } from "react";
-
-// Display type
-type UserGrowthItem = {
-  date: string;
-  users: number;
-};
-
-// Raw Firebase structure type
-type RawAnalytics = {
-  userGrowth: {
-    [date: string]: {
-      newUsers: number;
-    };
-  };
-};
-
-// Transform logic for daily
-const transform = (val: RawAnalytics): UserGrowthItem[] => {
-  return Object.entries(val?.userGrowth || {}).map(([date, entry]) => ({
-    date,
-    users: entry?.newUsers ?? 0,
-  }));
-};
 
 // Period options
 const periods = ["Daily", "Weekly", "Monthly"] as const;
@@ -64,10 +43,7 @@ const groupDataByPeriod = (
 export default function UserGrowthChart() {
   const [period, setPeriod] = useState<PeriodType>("Daily");
 
-  const { data, isUpdating, error, retry } = useLiveData<
-    UserGrowthItem,
-    RawAnalytics
-  >("analytics", transform);
+  const { data, isUpdating, error, retry } = UseLiveUserGrowth();
 
   const filteredData = useMemo(
     () => groupDataByPeriod(data, period),
