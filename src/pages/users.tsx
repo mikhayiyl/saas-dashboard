@@ -114,6 +114,7 @@ const Users = () => {
           user={selectedUser ?? undefined}
           onEdit={handleSave}
           onClose={handleClose}
+          users={users}
         />
       )}
     </div>

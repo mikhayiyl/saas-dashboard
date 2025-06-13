@@ -29,13 +29,15 @@ type FormData = z.infer<typeof userSchema>;
 
 const EditUserModal: React.FC<{
   user?: User;
+  users: User[];
   onEdit: (user: User) => void;
   onClose: () => void;
-}> = ({ user, onEdit, onClose }) => {
+}> = ({ user, onEdit, onClose, users }) => {
   const {
     register,
     handleSubmit,
     reset,
+    setError,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(userSchema),
@@ -55,12 +57,25 @@ const EditUserModal: React.FC<{
   }, [user, reset]);
 
   const onSubmit = (data: FormData) => {
+    const isEmailTaken = users.some(
+      (u) => u.email === data.email && u.id !== user?.id
+    );
+
+    if (isEmailTaken) {
+      setError("email", {
+        type: "manual",
+        message: "This email is already in use by another user.",
+      });
+      return;
+    }
+
     onEdit({
       id: user?.id,
-      ...data,
+      name: data.name,
+      email: data.email,
+      role: data.role,
       lastSeen: user?.lastSeen ?? Date.now(),
     });
-    onClose();
   };
 
   return (
