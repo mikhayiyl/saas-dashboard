@@ -1,5 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Table, TableCell, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { User } from "@/types/User";
 import { Pencil, Trash2 } from "lucide-react";
 
@@ -11,55 +18,67 @@ type Props = {
 
 const UsersTable: React.FC<Props> = ({ users, onEdit, onDelete }) => {
   return (
-    <div className="overflow-x-auto">
-      <Table className="w-full">
+    <section aria-labelledby="users-heading" className="w-full overflow-x-auto">
+      <h2 id="users-heading" className="sr-only">
+        Users Table
+      </h2>
+
+      <Table className="min-w-full border rounded-lg">
         <TableHeader>
           <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>Role</TableCell>
-            <TableCell>Actions</TableCell>
+            <TableHead scope="col">Name</TableHead>
+            <TableHead scope="col">Email</TableHead>
+            <TableHead scope="col">Role</TableHead>
+            <TableHead scope="col">Actions</TableHead>
           </TableRow>
         </TableHeader>
-        <tbody>
+
+        <TableBody>
           {users.length > 0 ? (
             users.map((user) => (
               <TableRow key={user.id}>
                 <TableCell>{user.name || "Unnamed"}</TableCell>
                 <TableCell>{user.email || "—"}</TableCell>
                 <TableCell>{user.role || "—"}</TableCell>
-                <TableCell className="flex flex-col md:flex-row gap-2">
-                  <Button
-                    variant="outline"
-                    className="w-full md:w-auto"
-                    onClick={() => onEdit(user)}
-                  >
-                    <Pencil className="w-4 h-4 mr-2" />
-                    Edit
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    className="w-full md:w-auto"
-                    onClick={() => {
-                      if (typeof user.id === "string") onDelete(user.id);
-                    }}
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete
-                  </Button>
+                <TableCell>
+                  <div className="flex flex-col md:flex-row gap-2">
+                    <Button
+                      variant="outline"
+                      className="w-full md:w-auto"
+                      onClick={() => onEdit(user)}
+                      aria-label={`Edit user ${user.name}`}
+                    >
+                      <Pencil className="w-4 h-4 mr-2" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      className="w-full md:w-auto"
+                      onClick={() => {
+                        if (typeof user.id === "string") onDelete(user.id);
+                      }}
+                      aria-label={`Delete user ${user.name}`}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={4} className="text-center text-gray-500">
+              <TableCell
+                colSpan={4}
+                className="text-center text-muted-foreground"
+              >
                 No users found.
               </TableCell>
             </TableRow>
           )}
-        </tbody>
+        </TableBody>
       </Table>
-    </div>
+    </section>
   );
 };
 
