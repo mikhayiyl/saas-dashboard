@@ -13,7 +13,7 @@ import { Pencil, Trash2 } from "lucide-react";
 type Props = {
   users: User[];
   onEdit: (user: User) => void;
-  onDelete: (id: string) => void;
+  onDelete: (user: User) => void;
 };
 
 const UsersTable: React.FC<Props> = ({ users, onEdit, onDelete }) => {
@@ -55,7 +55,7 @@ const UsersTable: React.FC<Props> = ({ users, onEdit, onDelete }) => {
                       variant="destructive"
                       className="w-full md:w-auto"
                       onClick={() => {
-                        if (typeof user.id === "string") onDelete(user.id);
+                        if (typeof user.id === "string") onDelete(user);
                       }}
                       aria-label={`Delete user ${user.name}`}
                     >
