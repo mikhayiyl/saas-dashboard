@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ColorModeSwitch } from "./ColorModeSwitch";
+import { ColorModeSwitch } from "../ui/ColorModeSwitch";
 export default function Topbar() {
   return (
     <header className="flex items-center justify-between p-4 border-b bg-background">
