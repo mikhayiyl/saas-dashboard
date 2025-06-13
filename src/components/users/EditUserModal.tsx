@@ -70,7 +70,7 @@ const EditUserModal: React.FC<{
     }
 
     onEdit({
-      id: user?.id,
+      id: user?.id!,
       name: data.name,
       email: data.email,
       role: data.role,
@@ -82,32 +82,41 @@ const EditUserModal: React.FC<{
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{user ? "Edit User" : "Add User"}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle asChild>
+            <h2 className="text-lg font-semibold">
+              {user ? "Edit User" : "Add User"}
+            </h2>
+          </DialogTitle>
+          <DialogDescription className="text-sm text-gray-700 dark:text-gray-300">
             {user
-              ? "Modify the user details."
-              : "Fill in the details to create a user."}
+              ? "Modify the user details below."
+              : "Fill in the form to create a new user."}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4 py-4">
           <div className="grid gap-2">
             <Label htmlFor="name">Name</Label>
-            <Input id="name" {...register("name")} />
+            <Input id="name" {...register("name")} autoComplete="name" />
             {errors.name && (
               <p className="text-sm text-red-500">{errors.name.message}</p>
             )}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" {...register("email")} />
+            <Input
+              id="email"
+              type="email"
+              {...register("email")}
+              autoComplete="email"
+            />
             {errors.email && (
               <p className="text-sm text-red-500">{errors.email.message}</p>
             )}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="role">Role</Label>
-            <Input id="role" {...register("role")} />
+            <Input id="role" {...register("role")} autoComplete="off" />
             {errors.role && (
               <p className="text-sm text-red-500">{errors.role.message}</p>
             )}
