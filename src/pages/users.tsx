@@ -2,13 +2,14 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import UsersTable from "@/components/users/UsersTable";
-import EditUserModal, { type User } from "@/components/users/EditUserModal";
+import EditUserModal from "@/components/users/EditUserModal";
 import {
   addUser,
   deleteUser,
   fetchUsers,
   updateUser,
 } from "@/lib/firebaseUsers";
+import type { User } from "@/types/User";
 
 const Users = () => {
   const [search, setSearch] = useState<string>("");
@@ -20,16 +21,33 @@ const Users = () => {
     fetchUsers().then(setUsers);
   }, []);
 
+  //save and add new user
+
   const handleSave = async (user: User) => {
     if (user.id) {
+      // Optimistic update for existing user
+      setUsers((prevUsers) =>
+        prevUsers.map((u) => (u.id === user.id ? user : u))
+      );
       await updateUser(user);
     } else {
-      await addUser(user);
+      // Optimistic add for new user
+      const { id, ...userWithoutId } = user;
+      const newUserId = (await addUser(userWithoutId)).id;
+
+      setUsers((prevUsers) => [
+        ...prevUsers,
+        {
+          ...userWithoutId,
+          id: newUserId,
+        },
+      ]);
     }
 
+    handleClose();
+    //  real sync
     const updatedUsers = await fetchUsers();
     setUsers(updatedUsers);
-    handleClose();
   };
 
   const handleEdit = (user: User) => {
@@ -42,10 +60,17 @@ const Users = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
-    await deleteUser(id);
-    const updatedUsers = await fetchUsers();
-    setUsers(updatedUsers);
+  // delete
+
+  const handleDelete = async (id: string) => {
+    // Optimistic update
+    setUsers((prev) => prev.filter((u) => u.id !== id));
+    try {
+      await deleteUser(id);
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+      // Optional rollback here
+    }
   };
 
   const handleClose = () => {

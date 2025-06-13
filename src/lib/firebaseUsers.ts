@@ -1,18 +1,22 @@
 // src/lib/firebaseUsers.ts
-import type { User } from "@/components/users/EditUserModal";
 import { db } from "@/lib/firebase";
-import { ref, set, push, update, remove, get, child } from "firebase/database";
+import type { User } from "@/types/User";
+import { child, get, push, ref, remove, set, update } from "firebase/database";
 
 const USERS_REF = "users";
 
 // Add user
-export const addUser = async (user: Omit<User, "id">) => {
+
+export const addUser = async (user: Omit<User, "id">): Promise<User> => {
   const newUserRef = push(ref(db, "users"));
+
   const userWithId: User = {
     ...user,
-    id: newUserRef.key || "", // Make sure id is never undefined
+    id: newUserRef.key!, // Use non-null assertion (Firebase always returns a key)
   };
+
   await set(newUserRef, userWithId);
+  return userWithId; // Return the new user for immediate UI updates
 };
 
 export const updateUser = async (user: User) => {

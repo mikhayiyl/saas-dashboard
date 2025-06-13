@@ -10,15 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { User } from "@/types/User";
 import { useEffect, useState } from "react";
-
-export type User = {
-  id?: string;
-  name: string;
-  email: string;
-  role: string;
-  lastSeen?: number;
-};
 
 const EditUserModal: React.FC<{
   user?: User;

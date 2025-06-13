@@ -1,12 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Table, TableCell, TableHeader, TableRow } from "@/components/ui/table";
+import type { User } from "@/types/User";
 import { Pencil, Trash2 } from "lucide-react";
-import type { User } from "./EditUserModal";
 
 type Props = {
   users: User[];
   onEdit: (user: User) => void;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
 };
 
 const UsersTable: React.FC<Props> = ({ users, onEdit, onDelete }) => {
@@ -41,7 +41,7 @@ const UsersTable: React.FC<Props> = ({ users, onEdit, onDelete }) => {
                     variant="destructive"
                     className="w-full md:w-auto"
                     onClick={() => {
-                      if (typeof user.id === "number") onDelete(user.id);
+                      if (typeof user.id === "string") onDelete(user.id);
                     }}
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
