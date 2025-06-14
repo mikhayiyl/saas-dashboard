@@ -1,13 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { DateRange } from "react-day-picker";
 
-const data = [
-  { label: "New Users", value: "1,024", change: "+12%" },
-  { label: "Revenue", value: "KES 343,000", change: "+9.3%" },
-  { label: "Refunds", value: "KES 17,400", change: "-2.8%" },
-  { label: "Orders", value: "761", change: "+4.2%" },
-  { label: "Top Product", value: "Bluetooth Speaker", change: "↑ 21%" },
-];
+import type { DateRange } from "react-day-picker";
+import reportsData from "./reportsData";
 
 type ReportsSummaryProps = {
   search: string;
@@ -15,8 +9,8 @@ type ReportsSummaryProps = {
 };
 
 export const ReportsSummary = ({ search, date }: ReportsSummaryProps) => {
-  const filtered = data.filter((item) =>
-    item.label.toLowerCase().includes(search.toLowerCase())
+  const filtered = reportsData(date).filter((item) =>
+    item.label.toLowerCase().startsWith(search.toLowerCase())
   );
 
   return (
@@ -40,12 +34,5 @@ export const ReportsSummary = ({ search, date }: ReportsSummaryProps) => {
         <p className="text-gray-500 text-sm col-span-full">No results found.</p>
       )}
     </div>
-  );
-};
-
-// Optional: static method to access filtered data for export
-ReportsSummary.getFilteredData = (search: string) => {
-  return data.filter((item) =>
-    item.label.toLowerCase().includes(search.toLowerCase())
   );
 };

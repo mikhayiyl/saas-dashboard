@@ -5,6 +5,10 @@ type ProductPerformanceItem = {
   name: string;
   score: number;
   rating: number;
+  price: number;
+  category: string;
+  sales: number;
+  returns: number;
 };
 
 const transformPerformanceData = (
@@ -16,6 +20,8 @@ const transformPerformanceData = (
     rating: entry.rating,
     price: entry.price,
     category: entry.category,
+    sales: entry.sales,
+    returns: entry.returns,
   }));
 };
 const UseLiveProducts = () => {

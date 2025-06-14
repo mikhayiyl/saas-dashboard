@@ -1,3 +1,4 @@
+import type { ProductPerformance } from "@/types/ProductPerformce";
 import { useLiveData } from "./useLiveData";
 
 type RevenueItem = {
@@ -5,18 +6,7 @@ type RevenueItem = {
   revenue: number;
 };
 
-type RawProductPerformance = {
-  [product: string]: {
-    name: string;
-    category: string;
-    sales: number;
-    returns: number;
-    rating: number;
-    price: number;
-  };
-};
-
-const transform = (val: RawProductPerformance): RevenueItem[] => {
+const transform = (val: ProductPerformance): RevenueItem[] => {
   const revenueMap: Record<string, number> = {};
 
   Object.values(val || {}).forEach(({ category, sales, returns, price }) => {
@@ -41,7 +31,7 @@ const transform = (val: RawProductPerformance): RevenueItem[] => {
 const UseLiveRevenue = () => {
   const { data, isUpdating, error, retry } = useLiveData<
     RevenueItem,
-    RawProductPerformance
+    ProductPerformance
   >("product-performance", transform);
 
   return { data, isUpdating, error, retry };
