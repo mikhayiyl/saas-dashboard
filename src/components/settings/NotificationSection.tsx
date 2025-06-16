@@ -4,11 +4,11 @@ import { Label } from "@/components/ui/label";
 import type { SettingsForm } from "@/types/SettingForm";
 
 type Props = {
-  form: SettingsForm;
-  setForm: React.Dispatch<React.SetStateAction<SettingsForm>>;
+  settings: SettingsForm;
+  handleChange: (field: string, vhandleChange: string | boolean) => void;
 };
 
-const NotificationSection = ({ form, setForm }: Props) => {
+const NotificationSection = ({ settings, handleChange }: Props) => {
   return (
     <Card>
       <CardHeader>
@@ -18,18 +18,18 @@ const NotificationSection = ({ form, setForm }: Props) => {
         <div className="flex items-center justify-between">
           <Label>Email Notifications</Label>
           <Switch
-            checked={form.emailNotifications}
+            checked={settings.emailNotifications}
             onCheckedChange={(checked) =>
-              setForm((prev) => ({ ...prev, emailNotifications: checked }))
+              handleChange("emailNotifications", checked)
             }
           />
         </div>
         <div className="flex items-center justify-between">
           <Label>Monthly Report Summaries</Label>
           <Switch
-            checked={form.monthlyReports}
+            checked={settings.monthlyReports}
             onCheckedChange={(checked) =>
-              setForm((prev) => ({ ...prev, monthlyReports: checked }))
+              handleChange("monthlyReports", checked)
             }
           />
         </div>

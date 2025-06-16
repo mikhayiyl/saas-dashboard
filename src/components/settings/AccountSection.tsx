@@ -4,11 +4,12 @@ import { Label } from "@/components/ui/label";
 import type { SettingsForm } from "@/types/SettingForm";
 
 type Props = {
-  form: SettingsForm;
-  setForm: React.Dispatch<React.SetStateAction<SettingsForm>>;
+  settings: SettingsForm;
+  setSettings: React.Dispatch<React.SetStateAction<SettingsForm>>;
+  handleChange: (field: string, vhandleChange: string | boolean) => void;
 };
 
-const AccountSection = ({ form, setForm }: Props) => {
+const AccountSection = ({ settings: form, handleChange }: Props) => {
   return (
     <Card>
       <CardHeader>
@@ -19,9 +20,7 @@ const AccountSection = ({ form, setForm }: Props) => {
           <Label>Company Name</Label>
           <Input
             value={form.company}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, company: e.target.value }))
-            }
+            onChange={(e) => handleChange("company", e.target.value)}
           />
         </div>
         <div>
@@ -29,18 +28,14 @@ const AccountSection = ({ form, setForm }: Props) => {
           <Input
             type="email"
             value={form.email}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, email: e.target.value }))
-            }
+            onChange={(e) => handleChange("email", e.target.value)}
           />
         </div>
         <div>
           <Label>Phone</Label>
           <Input
             value={form.phone}
-            onChange={(e) =>
-              setForm((prev) => ({ ...prev, phone: e.target.value }))
-            }
+            onChange={(e) => handleChange("phone", e.target.value)}
           />
         </div>
       </CardContent>

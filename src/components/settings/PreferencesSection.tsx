@@ -4,11 +4,11 @@ import { Label } from "@/components/ui/label";
 import type { SettingsForm } from "@/types/SettingForm";
 
 type Props = {
-  form: SettingsForm;
-  setForm: React.Dispatch<React.SetStateAction<SettingsForm>>;
+  settings: SettingsForm;
+  setSettings: React.Dispatch<React.SetStateAction<SettingsForm>>;
 };
 
-const PreferencesSection = ({ form, setForm }: Props) => {
+const PreferencesSection = ({ settings, setSettings }: Props) => {
   return (
     <Card>
       <CardHeader>
@@ -18,9 +18,9 @@ const PreferencesSection = ({ form, setForm }: Props) => {
         <div>
           <Label>Currency</Label>
           <Input
-            value={form.currency}
+            value={settings.currency}
             onChange={(e) =>
-              setForm((prev) => ({ ...prev, currency: e.target.value }))
+              setSettings((prev) => ({ ...prev, currency: e.target.value }))
             }
           />
         </div>
@@ -28,9 +28,9 @@ const PreferencesSection = ({ form, setForm }: Props) => {
           <Label>VAT / Tax Rate (%)</Label>
           <Input
             type="number"
-            value={form.taxRate}
+            value={settings.taxRate}
             onChange={(e) =>
-              setForm((prev) => ({ ...prev, taxRate: e.target.value }))
+              setSettings((prev) => ({ ...prev, taxRate: e.target.value }))
             }
           />
         </div>
