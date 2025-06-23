@@ -10,17 +10,9 @@ import {
   registerAndCreateUser,
   updateUser,
 } from "@/lib/firebaseUsers";
-import type { User } from "@/types/User";
+import type { User, UserInput } from "@/types/User";
 import { useEffect, useState } from "react";
-
-export type UserInput = {
-  id?: string;
-  name: string;
-  email: string;
-  password: string;
-  role?: string;
-  lastSeen: number;
-};
+import { toast } from "sonner";
 
 // Optional debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -50,31 +42,30 @@ const Users = () => {
   //  Save and add new user
 
   const handleSave = async (user: UserInput) => {
-    console.log(user);
-    if (user.id) {
-      setUsers((prevUsers) =>
-        prevUsers.map((u) => (u.id === user.id ? user : u))
-      );
-      const { password, ...userWithoutPassword } = user; //password possibly ''/ don't edit password
-      await updateUser(userWithoutPassword);
-    } else {
-      if (!user.password) return;
-      const { id, ...userWithoutId } = user; // new user id of undefined
-      await registerAndCreateUser({
-        ...userWithoutId,
-      });
+    try {
+      if (user.id) {
+        // update flow
+        const { password, ...userWithoutPassword } = user;
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === user.id ? { ...u, ...userWithoutPassword } : u
+          )
+        );
+        await updateUser(userWithoutPassword);
+      } else {
+        // create flow
+        const { id, ...userWithoutId } = user;
+        await registerAndCreateUser(userWithoutId);
+        const uid = auth.currentUser?.uid || "";
+        setUsers((prev) => [...prev, { ...userWithoutId, id: uid }]);
+      }
 
-      setUsers((prevUsers) => [
-        ...prevUsers,
-        { ...userWithoutId, id: auth.currentUser?.uid || "" },
-      ]);
+      const updatedUsers = await fetchUsers();
+      setUsers(updatedUsers);
+      handleClose();
+    } catch (error: any) {
+      toast.error(error.message || "Something went wrong.");
     }
-
-    handleClose();
-
-    // Optional real sync
-    const updatedUsers = await fetchUsers();
-    setUsers(updatedUsers);
   };
 
   const handleEdit = (user: User) => {
@@ -99,8 +90,8 @@ const Users = () => {
     setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
     try {
       await deleteUser(userToDelete.id);
-    } catch (error) {
-      console.error("Failed to delete user:", error);
+    } catch (error: any) {
+      toast.error(error.message);
     }
     setUserToDelete(null);
   };

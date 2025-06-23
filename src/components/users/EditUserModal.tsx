@@ -16,8 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import type { User } from "@/types/User";
-import type { UserInput } from "@/pages/users";
+import type { User, UserInput } from "@/types/User";
 
 // Validation schema
 const userSchema = z.object({
@@ -61,6 +60,7 @@ const EditUserModal: React.FC<{
       name: user?.name ?? "",
       email: user?.email ?? "",
       role: user?.role ?? "",
+      password: "",
     });
   }, [user, reset]);
 
@@ -86,6 +86,8 @@ const EditUserModal: React.FC<{
       lastSeen: user?.lastSeen ?? Date.now(),
     });
   };
+
+  const isEditing = Boolean(user?.id);
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -123,8 +125,7 @@ const EditUserModal: React.FC<{
               <p className="text-sm text-red-500">{errors.email.message}</p>
             )}
           </div>
-
-          {!user?.id && (
+          {!isEditing && (
             <div className="grid gap-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -150,12 +151,16 @@ const EditUserModal: React.FC<{
 
           <div className="grid gap-2">
             <Label htmlFor="role">Role</Label>
-            <Input id="role" {...register("role")} autoComplete="off" />
+            <select {...register("role")}>
+              <option value="">Roles</option>
+              <option value="admin">Admin</option>
+              <option value="editor">Editor</option>
+              <option value="viewer">Viewer</option>
+            </select>
             {errors.role && (
               <p className="text-sm text-red-500">{errors.role.message}</p>
             )}
           </div>
-
           <DialogFooter className="flex flex-col md:flex-row gap-2 mt-4">
             <DialogClose asChild>
               <Button

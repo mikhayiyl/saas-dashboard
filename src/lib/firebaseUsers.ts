@@ -1,10 +1,9 @@
-// src/lib/firebaseUsers.ts
-import { db } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import type { User } from "@/types/User";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import {
   child,
   get,
-  push,
   ref,
   remove,
   serverTimestamp,
@@ -13,23 +12,6 @@ import {
 } from "firebase/database";
 
 const USERS_REF = "users";
-
-// Add user
-
-export const addUser = async (user: Omit<User, "id">): Promise<User> => {
-  const newUserRef = push(ref(db, "users"));
-
-  const userWithId: User = {
-    ...user,
-    id: newUserRef.key!, // Use non-null assertion (Firebase always returns a key)
-  };
-
-  await set(newUserRef, userWithId);
-  return userWithId; // Return the new user for immediate UI updates
-};
-
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 
 type RegisterFormData = {
   name: string;
@@ -74,7 +56,8 @@ export const updateUser = async (user: User) => {
   await update(userRef, user);
 };
 
-export const deleteUser = async (id: number | string) => {
+export const deleteUser = async (id: string) => {
+  // Delete from Realtime Database
   const userRef = ref(db, `${USERS_REF}/${id}`);
   await remove(userRef);
 };

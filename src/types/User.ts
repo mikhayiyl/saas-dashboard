@@ -17,3 +17,12 @@ export type User = {
   loyaltyPoints?: number; // For reward systems
   newsletterOptIn?: boolean; // Marketing opt-in flag
 };
+
+export type UserInput = {
+  id?: string;
+  name: string;
+  email: string;
+  password: string;
+  role?: string;
+  lastSeen: number;
+};
