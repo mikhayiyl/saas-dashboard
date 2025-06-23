@@ -17,20 +17,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import type { User } from "@/types/User";
+import type { UserInput } from "@/pages/users";
 
 // Validation schema
 const userSchema = z.object({
   name: z.string().min(3, "Name is required"),
   email: z.string().email("Invalid email"),
   role: z.string().min(1, "Role is required"),
+  password: z
+    .string()
+    .optional()
+    .or(z.literal(""))
+    .refine((val) => !val || val.length >= 6, {
+      message: "Password cannot be less than 6 characters",
+    }), //to make password optional during editting
 });
 
-type FormData = z.infer<typeof userSchema>;
+type UserFormData = z.infer<typeof userSchema>;
 
 const EditUserModal: React.FC<{
   user?: User;
   users: User[];
-  onEdit: (user: User) => void;
+  onEdit: (user: UserInput) => void;
   onClose: () => void;
 }> = ({ user, onEdit, onClose, users }) => {
   const {
@@ -39,7 +47,7 @@ const EditUserModal: React.FC<{
     reset,
     setError,
     formState: { errors },
-  } = useForm<FormData>({
+  } = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
     defaultValues: {
       name: user?.name ?? "",
@@ -56,7 +64,7 @@ const EditUserModal: React.FC<{
     });
   }, [user, reset]);
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = (data: UserFormData) => {
     const isEmailTaken = users.some(
       (u) => u.email === data.email && u.id !== user?.id
     );
@@ -74,6 +82,7 @@ const EditUserModal: React.FC<{
       name: data.name,
       email: data.email,
       role: data.role,
+      password: data.password ?? "",
       lastSeen: user?.lastSeen ?? Date.now(),
     });
   };
@@ -114,6 +123,31 @@ const EditUserModal: React.FC<{
               <p className="text-sm text-red-500">{errors.email.message}</p>
             )}
           </div>
+
+          {!user?.id && (
+            <div className="grid gap-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                {...register("password", {
+                  required: "Password is required",
+                  minLength: {
+                    value: 6,
+                    message: "Password must be at least 6 characters long",
+                  },
+                })}
+                autoComplete="new-password"
+                className="w-full"
+              />
+              {errors.password && (
+                <p className="text-red-500 text-sm">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="grid gap-2">
             <Label htmlFor="role">Role</Label>
             <Input id="role" {...register("role")} autoComplete="off" />

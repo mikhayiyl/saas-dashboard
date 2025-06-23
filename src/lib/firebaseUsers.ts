@@ -1,7 +1,16 @@
 // src/lib/firebaseUsers.ts
 import { db } from "@/lib/firebase";
 import type { User } from "@/types/User";
-import { child, get, push, ref, remove, set, update } from "firebase/database";
+import {
+  child,
+  get,
+  push,
+  ref,
+  remove,
+  serverTimestamp,
+  set,
+  update,
+} from "firebase/database";
 
 const USERS_REF = "users";
 
@@ -17,6 +26,46 @@ export const addUser = async (user: Omit<User, "id">): Promise<User> => {
 
   await set(newUserRef, userWithId);
   return userWithId; // Return the new user for immediate UI updates
+};
+
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+
+type RegisterFormData = {
+  name: string;
+  email: string;
+  password: string;
+};
+
+export const registerAndCreateUser = async (
+  data: RegisterFormData
+): Promise<void> => {
+  const userCredential = await createUserWithEmailAndPassword(
+    auth,
+    data.email,
+    data.password
+  );
+
+  const user = userCredential.user;
+
+  if (data.name) {
+    await updateProfile(user, { displayName: data.name });
+  }
+
+  const userRef = ref(db, `users/${user.uid}`);
+  const newUser: User = {
+    id: user.uid,
+    name: data.name || "",
+    email: data.email,
+    role: "customer",
+    isActive: true,
+  };
+
+  await set(userRef, {
+    ...newUser,
+    createdAt: serverTimestamp(),
+    lastSeen: serverTimestamp(),
+  });
 };
 
 export const updateUser = async (user: User) => {

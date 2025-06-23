@@ -4,8 +4,11 @@ import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 
 const links = [
   { to: "/dashboard", label: "Dashboard" },
+  { to: "/products", label: "Products" },
+  { to: "/orders", label: "Orders" },
   { to: "/users", label: "Users" },
   { to: "/reports", label: "Reports" },
+  { to: "/team", label: "Team" },
   { to: "/settings", label: "Settings" },
 ];
 

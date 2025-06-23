@@ -1,16 +1,26 @@
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 import { Input } from "@/components/ui/input";
-import UsersTable from "@/components/users/UsersTable";
 import EditUserModal from "@/components/users/EditUserModal";
+import UsersTable from "@/components/users/UsersTable";
+import { auth } from "@/lib/firebase";
 import {
-  addUser,
   deleteUser,
   fetchUsers,
+  registerAndCreateUser,
   updateUser,
 } from "@/lib/firebaseUsers";
 import type { User } from "@/types/User";
-import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
+import { useEffect, useState } from "react";
+
+export type UserInput = {
+  id?: string;
+  name: string;
+  email: string;
+  password: string;
+  role?: string;
+  lastSeen: number;
+};
 
 // Optional debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -38,24 +48,31 @@ const Users = () => {
   }, []);
 
   //  Save and add new user
-  const handleSave = async (user: User) => {
+
+  const handleSave = async (user: UserInput) => {
+    console.log(user);
     if (user.id) {
       setUsers((prevUsers) =>
         prevUsers.map((u) => (u.id === user.id ? user : u))
       );
-      await updateUser(user);
+      const { password, ...userWithoutPassword } = user; //password possibly ''/ don't edit password
+      await updateUser(userWithoutPassword);
     } else {
-      const { id, ...userWithoutId } = user; // remove any existing id
-      const { id: newUserId } = await addUser(userWithoutId);
+      if (!user.password) return;
+      const { id, ...userWithoutId } = user; // new user id of undefined
+      await registerAndCreateUser({
+        ...userWithoutId,
+      });
+
       setUsers((prevUsers) => [
         ...prevUsers,
-        { ...userWithoutId, id: newUserId },
+        { ...userWithoutId, id: auth.currentUser?.uid || "" },
       ]);
     }
 
     handleClose();
 
-    //Optional real sync
+    // Optional real sync
     const updatedUsers = await fetchUsers();
     setUsers(updatedUsers);
   };

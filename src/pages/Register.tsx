@@ -1,11 +1,10 @@
-import { useForm } from "react-hook-form";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { registerAndCreateUser } from "@/lib/firebaseUsers";
+import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 type RegisterFormData = {
   name: string;
@@ -22,20 +21,12 @@ export default function RegisterForm() {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        data.email,
-        data.password
-      );
-      await updateProfile(userCredential.user, {
-        displayName: data.name,
-      });
+      await registerAndCreateUser(data);
       toast.success("Account created! Welcome to SimplizerPro!");
     } catch (error: any) {
       toast.error(`Error: ${error.message}`);
     }
   };
-
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
