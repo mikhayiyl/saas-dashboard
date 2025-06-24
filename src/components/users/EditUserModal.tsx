@@ -1,7 +1,7 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -150,9 +150,18 @@ const EditUserModal: React.FC<{
           )}
 
           <div className="grid gap-2">
-            <Label htmlFor="role">Role</Label>
-            <select {...register("role")}>
-              <option value="">Roles</option>
+            <label
+              htmlFor="role"
+              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            >
+              Role
+            </label>
+            <select
+              id="role"
+              {...register("role")}
+              className="w-full px-3 py-2 border rounded-md bg-white dark:bg-zinc-900 dark:text-white dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+            >
+              <option value="">Select a role</option>
               <option value="admin">Admin</option>
               <option value="editor">Editor</option>
               <option value="viewer">Viewer</option>
@@ -161,6 +170,7 @@ const EditUserModal: React.FC<{
               <p className="text-sm text-red-500">{errors.role.message}</p>
             )}
           </div>
+
           <DialogFooter className="flex flex-col md:flex-row gap-2 mt-4">
             <DialogClose asChild>
               <Button
