@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { registerAndCreateUser } from "@/lib/firebaseUsers";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 type RegisterFormData = {
@@ -18,11 +18,13 @@ export default function RegisterForm() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>();
+  const navigate = useNavigate();
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
       await registerAndCreateUser(data);
       toast.success("Account created! Welcome to SimplizerPro!");
+      navigate("/dashboard");
     } catch (error: any) {
       toast.error(`Error: ${error.message}`);
     }

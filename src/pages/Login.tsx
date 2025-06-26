@@ -38,17 +38,11 @@ const LoginForm = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      const res = await signInWithEmailAndPassword(
-        auth,
-        data.email,
-        data.password
-      );
-      console.log(res.user.getIdToken.toString());
+      await signInWithEmailAndPassword(auth, data.email, data.password);
       toast.success("Logged in successfully!");
-      //   navigate("/dashboard");
+      navigate("/dashboard");
     } catch (error: any) {
-      0;
-      toast.error(`Error: ${error.message}`);
+      toast.error(`Error: ${error.code}`);
     }
   };
 
@@ -56,7 +50,7 @@ const LoginForm = () => {
     setResetLoading(true);
     try {
       await sendPasswordResetEmail(auth, resetEmail);
-      toast.success("Password reset email sent!");
+      toast.success("If this email exists, a reset link has been sent.");
     } catch (error: any) {
       toast.error(`Error: ${error.message}`);
     } finally {
